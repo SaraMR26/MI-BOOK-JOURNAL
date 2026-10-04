@@ -2,169 +2,81 @@
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Journal</title>
-
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
-
+    <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
     <!-- ENCABEZADO -->
-
     <header class="encabezado">
-
         <h1>BOOK JOURNAL</h1>
-
         <p>Mi diario de lectura</p>
-
     </header>
 
-
     <!-- CONTENEDOR PRINCIPAL -->
-
     <div class="app">
 
-
         <!-- MENU -->
-
         <aside class="menu">
 
-            <button
-                onclick="mostrarPagina('inicio')"
-                class="boton-menu"
-            >
-                🏠
-                <span>Inicio</span>
+            <button onclick="mostrarPagina('inicio')" class="boton-menu">
+                🏠 <span>Inicio</span>
             </button>
 
-
-            <button
-    onclick="mostrarLibros()"
-    class="boton-menu"
->
-    📚
-    <span>Librería</span>
-</button>
-
-
-            <button
-                onclick="mostrarPagina('estanterias')"
-                class="boton-menu"
-            >
-                📖
-                <span>Estanterías</span>
+            <button onclick="mostrarPagina('libreria')" class="boton-menu">
+                📚 <span>Librería</span>
             </button>
 
-
-            <button
-                onclick="mostrarPagina('resenas')"
-                class="boton-menu"
-            >
-                ⭐
-                <span>Reseñas</span>
+            <button onclick="mostrarPagina('estanterias')" class="boton-menu">
+                📖 <span>Estanterías</span>
             </button>
 
-
-            <button
-                onclick="mostrarPagina('favorito')"
-                class="boton-menu"
-            >
-                💚
-                <span>Favorito</span>
+            <button onclick="mostrarPagina('resenas')" class="boton-menu">
+                ⭐ <span>Reseñas</span>
             </button>
 
-
-            <button
-                onclick="mostrarTracker()"
-                class="boton-menu"
-            >
-                📅
-                <span>Tracker</span>
+            <button onclick="mostrarPagina('favorito')" class="boton-menu">
+                💚 <span>Favorito</span>
             </button>
 
-
-            <button
-                onclick="mostrarCitas()"
-                class="boton-menu"
-            >
-                💬
-                <span>Citas</span>
+            <button onclick="mostrarPagina('tracker')" class="boton-menu">
+                📅 <span>Tracker</span>
             </button>
 
-
-            <button
-                onclick="mostrarAutores()"
-                class="boton-menu"
-            >
-                👩
-                <span>Autores</span>
+            <button onclick="mostrarPagina('citas')" class="boton-menu">
+                💬 <span>Citas</span>
             </button>
 
-
-            <button
-                onclick="mostrarRegistro()"
-                class="boton-menu"
-            >
-                📝
-                <span>Registro</span>
+            <button onclick="mostrarPagina('autores')" class="boton-menu">
+                👩 <span>Autores</span>
             </button>
 
-
-            <button
-                onclick="mostrarAdaptaciones()"
-                class="boton-menu"
-            >
-                🎬
-                <span>Adaptaciones</span>
+            <button onclick="mostrarPagina('registro')" class="boton-menu">
+                📝 <span>Registro</span>
             </button>
 
+            <button onclick="mostrarPagina('adaptaciones')" class="boton-menu">
+                🎬 <span>Adaptaciones</span>
+            </button>
 
-            <button
-                onclick="mostrarRecap()"
-                class="boton-menu"
-            >
-                📊
-                <span>Recap</span>
+            <button onclick="mostrarPagina('recap')" class="boton-menu">
+                📊 <span>Recap</span>
             </button>
 
         </aside>
 
-
-        <!-- CONTENIDO -->
-
-        <main
-            id="contenido"
-            class="contenido"
-        >
-
+        <!-- CONTENIDO PRINCIPAL -->
+        <main id="contenido" class="contenido">
             <h2>Bienvenida 📚</h2>
-
-            <p>
-                Selecciona una sección
-                para comenzar.
-            </p>
-
+            <p>Selecciona una sección para comenzar.</p>
         </main>
-
 
     </div>
 
-
     <script src="script.js"></script>
-
 </body>
 
 </html>
