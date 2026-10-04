@@ -1,0 +1,141 @@
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+
+    margin: 0;
+
+    font-family: Georgia, serif;
+
+    background-color: #e8f7f9;
+
+    color: #333;
+
+}
+
+
+/* ENCABEZADO */
+
+.header {
+
+    text-align: center;
+
+    padding: 25px;
+
+    background-color: #d7eef1;
+
+}
+
+
+.header h1 {
+
+    margin: 0;
+
+    font-size: 32px;
+
+}
+
+
+.header p {
+
+    margin-top: 8px;
+
+}
+
+
+/* MENU */
+
+.menu {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 15px;
+
+}
+
+
+.menu button {
+
+    border: none;
+
+    background-color: white;
+
+    padding: 10px 14px;
+
+    border-radius: 10px;
+
+    font-family: Georgia, serif;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+}
+
+
+.menu button:hover {
+
+    transform: scale(1.03);
+
+}
+
+
+/* CONTENIDO */
+
+#contenido {
+
+    width: 90%;
+
+    max-width: 1000px;
+
+    margin: auto;
+
+    padding: 30px;
+
+}
+
+
+#contenido h2 {
+
+    text-align: center;
+
+}
+
+
+/* TELEFONO */
+
+@media (max-width: 600px) {
+
+    .header h1 {
+
+        font-size: 25px;
+
+    }
+
+
+    .menu {
+
+        display: grid;
+
+        grid-template-columns: 1fr 1fr;
+
+    }
+
+
+    .menu button {
+
+        width: 100%;
+
+        font-size: 13px;
+
+    }
+
+}
