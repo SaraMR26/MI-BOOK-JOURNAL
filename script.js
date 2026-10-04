@@ -54,70 +54,91 @@ function generarEstrellas(rating) {
 
     return estrellas;
 
-}
-function mostrarLibros() {
+function mostrarLibro(id) {
+
+    const libro =
+        libros.find(libro => libro.id === id);
+
 
     const contenido =
         document.getElementById("contenido");
 
 
-    let tarjetas = "";
+    contenido.innerHTML = `
+
+        <button
+            onclick="mostrarLibros()"
+            class="boton-volver"
+        >
+            ← Volver
+        </button>
 
 
-    libros.forEach(libro => {
+        <div class="detalle-libro">
 
-        tarjetas += `
+            <img
+                src="${libro.portada}"
+                alt="${libro.titulo}"
+                class="portada-detalle"
+            >
 
-            <div class="tarjeta-libro">
 
-                <img
-                    src="${libro.portada}"
-                    alt="${libro.titulo}"
-                    class="portada-libro"
-                >
+            <div>
 
-                <div class="informacion-libro">
+                <h2>
+                    ${libro.titulo}
+                </h2>
 
-                    <h3>
-                        ${libro.titulo}
-                    </h3>
+                <h3>
+                    ${libro.autor}
+                </h3>
 
-                    <p>
-                        ${libro.autor}
-                    </p>
+                <p class="estrellas">
+                    ${generarEstrellas(libro.rating)}
+                </p>
 
-                    <p class="estrellas">
+                <p>
+                    📖 ${libro.paginas} páginas
+                </p>
 
-                        ${generarEstrellas(libro.rating)}
+                <p>
+                    📚 ${libro.estado}
+                </p>
 
-                    </p>
-
-                    <p>
-                        ${libro.estado}
-                    </p>
-
-                </div>
+                <p>
+                    🏷️ ${libro.genero}
+                </p>
 
             </div>
 
-        `;
-
-    });
-
-
-    contenido.innerHTML = `
-
-        <h2>📚 Mi Librería</h2>
-
-        <div class="biblioteca">
-
-            ${tarjetas}
-
         </div>
+
+
+        <section class="seccion-libro">
+
+            <h3>📝 Mi reseña</h3>
+
+            <p>
+                Aquí escribiremos la reseña.
+            </p>
+
+        </section>
+
+
+        <section class="seccion-libro">
+
+            <h3>💬 Citas favoritas</h3>
+
+            <p>
+                Aquí aparecerán las citas.
+            </p>
+
+        </section>
 
     `;
 
 }
+
 function mostrarPagina(pagina) {
 
     const contenido =
@@ -287,5 +308,179 @@ function mostrarPagina(pagina) {
         `;
 
     }
+
+}
+function mostrarRegistro() {
+
+    const contenido =
+        document.getElementById("contenido");
+
+
+    contenido.innerHTML = `
+
+        <h2>📝 Registrar libro</h2>
+
+
+        <form
+            id="formulario-libro"
+            class="formulario-libro"
+        >
+
+            <label>
+                Título
+            </label>
+
+            <input
+                type="text"
+                id="titulo"
+                required
+            >
+
+
+            <label>
+                Autor
+            </label>
+
+            <input
+                type="text"
+                id="autor"
+                required
+            >
+
+
+            <label>
+                Páginas
+            </label>
+
+            <input
+                type="number"
+                id="paginas"
+                min="1"
+            >
+
+
+            <label>
+                Género
+            </label>
+
+            <input
+                type="text"
+                id="genero"
+            >
+
+
+            <label>
+                Estado
+            </label>
+
+            <select id="estado">
+
+                <option value="Por leer">
+                    Por leer
+                </option>
+
+                <option value="Leyendo">
+                    Leyendo
+                </option>
+
+                <option value="Leído">
+                    Leído
+                </option>
+
+                <option value="Pausado">
+                    Pausado
+                </option>
+
+                <option value="Abandonado">
+                    Abandonado
+                </option>
+
+            </select>
+
+
+            <label>
+                Calificación
+            </label>
+
+            <select id="rating">
+
+                <option value="0">Sin calificar</option>
+
+                <option value="1">★</option>
+
+                <option value="2">★★</option>
+
+                <option value="3">★★★</option>
+
+                <option value="4">★★★★</option>
+
+                <option value="5">★★★★★</option>
+
+            </select>
+
+
+            <button type="submit">
+
+                Guardar libro
+
+            </button>
+
+        </form>
+
+    `;
+
+
+    document
+        .getElementById("formulario-libro")
+        .addEventListener(
+            "submit",
+            guardarLibro
+        );
+
+}
+function guardarLibro(event) {
+
+    event.preventDefault();
+
+
+    const nuevoLibro = {
+
+        id: Date.now(),
+
+        titulo:
+            document.getElementById("titulo").value,
+
+        autor:
+            document.getElementById("autor").value,
+
+        paginas:
+            Number(
+                document.getElementById("paginas").value
+            ),
+
+        genero:
+            document.getElementById("genero").value,
+
+        estado:
+            document.getElementById("estado").value,
+
+        rating:
+            Number(
+                document.getElementById("rating").value
+            ),
+
+        portada:
+            "images/libro-default.jpg"
+
+    };
+
+
+    libros.push(nuevoLibro);
+
+
+    alert("Libro agregado correctamente");
+
+
+    mostrarLibros();
 
 }
