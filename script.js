@@ -639,3 +639,414 @@ function seleccionarDia(dia) {
 
 }
 
+const citas = [];
+function mostrarCitas() {
+
+    const contenido =
+        document.getElementById("contenido");
+
+
+    let htmlCitas = "";
+
+
+    if (citas.length === 0) {
+
+        htmlCitas = `
+
+            <p>
+                Todavía no tienes citas guardadas.
+            </p>
+
+        `;
+
+    } else {
+
+        citas.forEach(cita => {
+
+            htmlCitas += `
+
+                <div class="tarjeta-cita">
+
+                    <blockquote>
+                        "${cita.texto}"
+                    </blockquote>
+
+                    <p>
+                        📖 ${cita.libro}
+                    </p>
+
+                    <p>
+                        ✍️ ${cita.autor}
+                    </p>
+
+                    <p>
+                        Página: ${cita.pagina}
+                    </p>
+
+                </div>
+
+            `;
+
+        });
+
+    }
+
+
+    contenido.innerHTML = `
+
+        <h2>💬 Mis citas</h2>
+
+        <button
+            onclick="mostrarFormularioCita()"
+            class="boton-principal"
+        >
+            + Nueva cita
+        </button>
+
+        <div class="lista-citas">
+
+            ${htmlCitas}
+
+        </div>
+
+    `;
+
+}
+
+function mostrarFormularioCita() {
+
+    const contenido =
+        document.getElementById("contenido");
+
+
+    contenido.innerHTML = `
+
+        <h2>💬 Nueva cita</h2>
+
+        <form
+            id="form-cita"
+            class="formulario-libro"
+        >
+
+            <label>
+                Cita
+            </label>
+
+            <textarea
+                id="texto-cita"
+                required
+            ></textarea>
+
+
+            <label>
+                Libro
+            </label>
+
+            <input
+                type="text"
+                id="libro-cita"
+                required
+            >
+
+
+            <label>
+                Autor
+            </label>
+
+            <input
+                type="text"
+                id="autor-cita"
+            >
+
+
+            <label>
+                Página
+            </label>
+
+            <input
+                type="number"
+                id="pagina-cita"
+            >
+
+
+            <button type="submit">
+                Guardar cita
+            </button>
+
+        </form>
+
+    `;
+
+
+    document
+        .getElementById("form-cita")
+        .addEventListener(
+            "submit",
+            guardarCita
+        );
+
+}
+function guardarCita(event) {
+
+    event.preventDefault();
+
+
+    const cita = {
+
+        texto:
+            document.getElementById(
+                "texto-cita"
+            ).value,
+
+        libro:
+            document.getElementById(
+                "libro-cita"
+            ).value,
+
+        autor:
+            document.getElementById(
+                "autor-cita"
+            ).value,
+
+        pagina:
+            document.getElementById(
+                "pagina-cita"
+            ).value
+
+    };
+
+
+    citas.push(cita);
+
+
+    mostrarCitas();
+
+}
+
+const autores = [
+    {
+        id: 1,
+        nombre: "Autor de ejemplo",
+        libros: 3,
+        foto: "images/autor1.jpg"
+    }
+];
+
+function mostrarAutores() {
+
+    const contenido =
+        document.getElementById("contenido");
+
+
+    let tarjetas = "";
+
+
+    autores.forEach(autor => {
+
+        tarjetas += `
+
+            <div class="tarjeta-autor">
+
+                <img
+                    src="${autor.foto}"
+                    alt="${autor.nombre}"
+                >
+
+                <h3>
+                    ${autor.nombre}
+                </h3>
+
+                <p>
+                    ${autor.libros} libros
+                </p>
+
+            </div>
+
+        `;
+
+    });
+
+
+    contenido.innerHTML = `
+
+        <h2>👩 Autores</h2>
+
+        <div class="lista-autores">
+
+            ${tarjetas}
+
+        </div>
+
+    `;
+
+}
+
+const adaptaciones = [];
+function mostrarAdaptaciones() {
+
+    const contenido =
+        document.getElementById("contenido");
+
+
+    let html = "";
+
+
+    if (adaptaciones.length === 0) {
+
+        html = `
+
+            <p>
+                No tienes adaptaciones registradas.
+            </p>
+
+        `;
+
+    } else {
+
+        adaptaciones.forEach(adaptacion => {
+
+            html += `
+
+                <div class="tarjeta-adaptacion">
+
+                    <h3>
+                        ${adaptacion.libro}
+                    </h3>
+
+                    <p>
+                        🎬 ${adaptacion.titulo}
+                    </p>
+
+                    <p>
+                        📅 ${adaptacion.año}
+                    </p>
+
+                    <p>
+                        📺 ${adaptacion.plataforma}
+                    </p>
+
+                </div>
+
+            `;
+
+        });
+
+    }
+
+
+    contenido.innerHTML = `
+
+        <h2>🎬 Adaptaciones</h2>
+
+        <div class="lista-adaptaciones">
+
+            ${html}
+
+        </div>
+
+    `;
+
+}
+
+function mostrarRecap() {
+
+    const contenido =
+        document.getElementById("contenido");
+
+
+    const librosLeidos =
+        libros.filter(
+            libro =>
+                libro.estado === "Leído"
+        );
+
+
+    const cantidad =
+        librosLeidos.length;
+
+
+    const paginas =
+        librosLeidos.reduce(
+            (total, libro) =>
+                total + libro.paginas,
+            0
+        );
+
+
+    let promedio = 0;
+
+
+    if (cantidad > 0) {
+
+        promedio =
+            librosLeidos.reduce(
+                (total, libro) =>
+                    total + libro.rating,
+                0
+            ) / cantidad;
+
+    }
+
+
+    contenido.innerHTML = `
+
+        <div class="recap">
+
+            <h2>
+                📊 Recap de lectura
+            </h2>
+
+
+            <div class="estadisticas">
+
+                <div class="estadistica">
+
+                    <span>📚</span>
+
+                    <strong>
+                        ${cantidad}
+                    </strong>
+
+                    <small>
+                        Libros leídos
+                    </small>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span>📖</span>
+
+                    <strong>
+                        ${paginas}
+                    </strong>
+
+                    <small>
+                        Páginas
+                    </small>
+
+                </div>
+
+
+                <div class="estadistica">
+
+                    <span>⭐</span>
+
+                    <strong>
+                        ${promedio.toFixed(1)}
+                    </strong>
+
+                    <small>
+                        Promedio
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+}

@@ -557,3 +557,180 @@ body {
 
 }
 
+/* =========================
+   CITAS
+========================= */
+
+.lista-citas {
+
+    display: grid;
+
+    gap: 20px;
+
+    margin-top: 25px;
+
+}
+
+
+.tarjeta-cita {
+
+    background-color: white;
+
+    padding: 25px;
+
+    border-radius: 15px;
+
+}
+
+
+.tarjeta-cita blockquote {
+
+    font-size: 18px;
+
+    font-style: italic;
+
+    margin: 0 0 20px;
+
+}
+
+
+.boton-principal {
+
+    border: none;
+
+    border-radius: 10px;
+
+    padding: 12px 18px;
+
+    cursor: pointer;
+
+}
+
+/* =========================
+   AUTORES
+========================= */
+
+.lista-autores {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fill, minmax(180px, 1fr));
+
+    gap: 20px;
+
+}
+
+
+.tarjeta-autor {
+
+    background-color: white;
+
+    padding: 15px;
+
+    border-radius: 15px;
+
+    text-align: center;
+
+}
+
+
+.tarjeta-autor img {
+
+    width: 120px;
+
+    height: 120px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+}
+
+.lista-adaptaciones {
+
+    display: grid;
+
+    gap: 20px;
+
+}
+
+
+.tarjeta-adaptacion {
+
+    background-color: white;
+
+    padding: 20px;
+
+    border-radius: 15px;
+
+}
+
+/* =========================
+   RECAP
+========================= */
+
+.estadisticas {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 20px;
+
+    margin-top: 30px;
+
+}
+
+
+.estadistica {
+
+    background-color: white;
+
+    padding: 25px;
+
+    border-radius: 15px;
+
+    text-align: center;
+
+}
+
+
+.estadistica span {
+
+    display: block;
+
+    font-size: 30px;
+
+}
+
+
+.estadistica strong {
+
+    display: block;
+
+    font-size: 30px;
+
+    margin: 10px 0;
+
+}
+
+
+.estadistica small {
+
+    display: block;
+
+}
+
+
+@media (max-width: 600px) {
+
+    .estadisticas {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
+
