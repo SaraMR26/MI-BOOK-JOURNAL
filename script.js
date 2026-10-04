@@ -53,6 +53,7 @@ function generarEstrellas(rating) {
     }
 
     return estrellas;
+}
 
 function mostrarLibro(id) {
 
