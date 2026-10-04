@@ -1,5 +1,7 @@
 * {
+
     box-sizing: border-box;
+
 }
 
 
@@ -7,135 +9,234 @@ body {
 
     margin: 0;
 
+    min-height: 100vh;
+
     font-family: Georgia, serif;
 
-    background-color: #e8f7f9;
+    background-color: #e8f6f7;
 
-    color: #333;
+    color: #4a4a4a;
 
 }
 
 
-/* ENCABEZADO */
+/* =========================
+   ENCABEZADO
+========================= */
 
-.header {
+.encabezado {
 
     text-align: center;
 
-    padding: 25px;
+    padding: 25px 15px;
 
-    background-color: #d7eef1;
+    background-color: #d9eff1;
 
 }
 
 
-.header h1 {
+.encabezado h1 {
 
     margin: 0;
 
     font-size: 32px;
 
-}
-
-
-.header p {
-
-    margin-top: 8px;
+    letter-spacing: 2px;
 
 }
 
 
-/* MENU */
+.encabezado p {
 
-.menu {
+    margin: 8px 0 0;
+
+    font-size: 16px;
+
+}
+
+
+/* =========================
+   ESTRUCTURA
+========================= */
+
+.app {
 
     display: flex;
 
-    flex-wrap: wrap;
-
-    justify-content: center;
-
-    gap: 8px;
-
-    padding: 15px;
+    min-height: calc(100vh - 110px);
 
 }
 
 
-.menu button {
+/* =========================
+   MENU
+========================= */
+
+.menu {
+
+    width: 180px;
+
+    padding: 20px 12px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    background-color: #d3ebed;
+
+}
+
+
+.boton-menu {
 
     border: none;
 
+    border-radius: 12px;
+
+    padding: 12px;
+
     background-color: white;
-
-    padding: 10px 14px;
-
-    border-radius: 10px;
 
     font-family: Georgia, serif;
 
-    cursor: pointer;
-
     font-size: 14px;
 
-}
+    cursor: pointer;
 
+    display: flex;
 
-.menu button:hover {
+    align-items: center;
 
-    transform: scale(1.03);
+    gap: 10px;
 
-}
-
-
-/* CONTENIDO */
-
-#contenido {
-
-    width: 90%;
-
-    max-width: 1000px;
-
-    margin: auto;
-
-    padding: 30px;
+    transition: 0.2s;
 
 }
 
 
-#contenido h2 {
+.boton-menu:hover {
+
+    transform: translateX(3px);
+
+}
+
+
+/* =========================
+   CONTENIDO
+========================= */
+
+.contenido {
+
+    flex: 1;
+
+    padding: 35px;
+
+    max-width: 1100px;
+
+}
+
+
+.contenido h2 {
 
     text-align: center;
 
+    font-size: 28px;
+
 }
 
 
-/* TELEFONO */
+/* =========================
+   TELEFONO
+========================= */
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
 
-    .header h1 {
 
-        font-size: 25px;
+    .encabezado {
+
+        padding: 18px 10px;
+
+    }
+
+
+    .encabezado h1 {
+
+        font-size: 24px;
+
+    }
+
+
+    .app {
+
+        display: block;
+
+        padding-bottom: 70px;
 
     }
 
 
     .menu {
 
-        display: grid;
+        position: fixed;
 
-        grid-template-columns: 1fr 1fr;
+        bottom: 0;
 
-    }
+        left: 0;
 
-
-    .menu button {
+        right: 0;
 
         width: 100%;
 
-        font-size: 13px;
+        height: 65px;
+
+        padding: 6px;
+
+        display: flex;
+
+        flex-direction: row;
+
+        justify-content: space-around;
+
+        gap: 3px;
+
+        z-index: 100;
 
     }
+
+
+    .boton-menu {
+
+        flex: 1;
+
+        padding: 5px;
+
+        flex-direction: column;
+
+        justify-content: center;
+
+        gap: 2px;
+
+        font-size: 10px;
+
+        border-radius: 8px;
+
+    }
+
+
+    .boton-menu span {
+
+        display: block;
+
+    }
+
+
+    .contenido {
+
+        padding: 20px 15px;
+
+    }
+
 
 }

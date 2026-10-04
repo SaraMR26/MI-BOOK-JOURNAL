@@ -22,7 +22,9 @@
 
 <body>
 
-    <header class="header">
+    <!-- ENCABEZADO -->
+
+    <header class="encabezado">
 
         <h1>BOOK JOURNAL</h1>
 
@@ -31,64 +33,134 @@
     </header>
 
 
-    <nav class="menu">
+    <!-- CONTENEDOR PRINCIPAL -->
 
-        <button onclick="mostrarPagina('inicio')">
-            🏠 Inicio
-        </button>
-
-        <button onclick="mostrarPagina('libreria')">
-            📚 Librería
-        </button>
-
-        <button onclick="mostrarPagina('estanterias')">
-            📖 Estanterías
-        </button>
-
-        <button onclick="mostrarPagina('resenas')">
-            ⭐ Reseñas
-        </button>
-
-        <button onclick="mostrarPagina('favorito')">
-            💚 Favorito del mes
-        </button>
-
-        <button onclick="mostrarPagina('tracker')">
-            📅 Reading Tracker
-        </button>
-
-        <button onclick="mostrarPagina('citas')">
-            💬 Citas
-        </button>
-
-        <button onclick="mostrarPagina('autores')">
-            👩 Autores
-        </button>
-
-        <button onclick="mostrarPagina('registro')">
-            📝 Registro
-        </button>
-
-        <button onclick="mostrarPagina('adaptaciones')">
-            🎬 Adaptaciones
-        </button>
-
-        <button onclick="mostrarPagina('recap')">
-            📊 Recap
-        </button>
-
-    </nav>
+    <div class="app">
 
 
-    <main id="contenido">
+        <!-- MENU -->
 
-        <h2>Bienvenida a mi Book Journal 📚</h2>
+        <aside class="menu">
 
-        <p>
-            Selecciona una sección para comenzar.
-        </p>
+            <button
+                onclick="mostrarPagina('inicio')"
+                class="boton-menu"
+            >
+                🏠
+                <span>Inicio</span>
+            </button>
 
-    </main>
+
+            <button
+                onclick="mostrarPagina('libreria')"
+                class="boton-menu"
+            >
+                📚
+                <span>Librería</span>
+            </button>
+
+
+            <button
+                onclick="mostrarPagina('estanterias')"
+                class="boton-menu"
+            >
+                📖
+                <span>Estanterías</span>
+            </button>
+
+
+            <button
+                onclick="mostrarPagina('resenas')"
+                class="boton-menu"
+            >
+                ⭐
+                <span>Reseñas</span>
+            </button>
+
+
+            <button
+                onclick="mostrarPagina('favorito')"
+                class="boton-menu"
+            >
+                💚
+                <span>Favorito</span>
+            </button>
+
+
+            <button
+                onclick="mostrarPagina('tracker')"
+                class="boton-menu"
+            >
+                📅
+                <span>Tracker</span>
+            </button>
+
+
+            <button
+                onclick="mostrarPagina('citas')"
+                class="boton-menu"
+            >
+                💬
+                <span>Citas</span>
+            </button>
+
+
+            <button
+                onclick="mostrarPagina('autores')"
+                class="boton-menu"
+            >
+                👩
+                <span>Autores</span>
+            </button>
+
+
+            <button
+                onclick="mostrarPagina('registro')"
+                class="boton-menu"
+            >
+                📝
+                <span>Registro</span>
+            </button>
+
+
+            <button
+                onclick="mostrarPagina('adaptaciones')"
+                class="boton-menu"
+            >
+                🎬
+                <span>Adaptaciones</span>
+            </button>
+
+
+            <button
+                onclick="mostrarPagina('recap')"
+                class="boton-menu"
+            >
+                📊
+                <span>Recap</span>
+            </button>
+
+        </aside>
+
+
+        <!-- CONTENIDO -->
+
+        <main
+            id="contenido"
+            class="contenido"
+        >
+
+            <h2>Bienvenida 📚</h2>
+
+            <p>
+                Selecciona una sección
+                para comenzar.
+            </p>
+
+        </main>
+
+
+    </div>
 
 
     <script src="script.js"></script>
