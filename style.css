@@ -441,3 +441,119 @@ body {
     }
 
 }
+
+/* =========================
+   READING TRACKER
+========================= */
+
+.tracker {
+    max-width: 900px;
+    margin: auto;
+}
+
+
+.tracker-controles {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 25px;
+
+    margin-bottom: 25px;
+
+}
+
+
+.tracker-controles button {
+
+    border: none;
+
+    background: white;
+
+    border-radius: 10px;
+
+    padding: 10px 15px;
+
+    cursor: pointer;
+
+    font-size: 18px;
+
+}
+
+
+.calendario {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(7, 1fr);
+
+    gap: 8px;
+
+}
+
+
+.dia-semana {
+
+    text-align: center;
+
+    font-weight: bold;
+
+    padding: 10px;
+
+}
+
+
+.dia {
+
+    min-height: 70px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background-color: white;
+
+    cursor: pointer;
+
+    font-family: Georgia, serif;
+
+}
+
+
+.dia:hover {
+
+    transform: scale(1.03);
+
+}
+
+
+.vacio {
+
+    background-color: transparent;
+
+}
+
+
+@media (max-width: 600px) {
+
+    .calendario {
+
+        gap: 4px;
+
+    }
+
+
+    .dia {
+
+        min-height: 50px;
+
+        font-size: 12px;
+
+    }
+
+}
+

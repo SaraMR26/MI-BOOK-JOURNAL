@@ -484,3 +484,158 @@ function guardarLibro(event) {
     mostrarLibros();
 
 }
+function mostrarTracker() {
+
+    const contenido =
+        document.getElementById("contenido");
+
+    contenido.innerHTML = `
+
+        <div class="tracker">
+
+            <h2>📅 Reading Tracker</h2>
+
+            <div class="tracker-controles">
+
+                <button onclick="cambiarMes(-1)">
+                    ←
+                </button>
+
+                <h3 id="mes-actual"></h3>
+
+                <button onclick="cambiarMes(1)">
+                    →
+                </button>
+
+            </div>
+
+            <div
+                id="calendario"
+                class="calendario"
+            ></div>
+
+        </div>
+
+    `;
+
+    generarCalendario();
+
+}
+let fechaTracker = new Date();
+function generarCalendario() {
+
+    const calendario =
+        document.getElementById("calendario");
+
+    const tituloMes =
+        document.getElementById("mes-actual");
+
+
+    const año =
+        fechaTracker.getFullYear();
+
+    const mes =
+        fechaTracker.getMonth();
+
+
+    const nombreMes =
+        fechaTracker.toLocaleDateString(
+            "es-MX",
+            {
+                month: "long",
+                year: "numeric"
+            }
+        );
+
+
+    tituloMes.textContent =
+        nombreMes.toUpperCase();
+
+
+    const primerDia =
+        new Date(año, mes, 1).getDay();
+
+
+    const diasMes =
+        new Date(año, mes + 1, 0).getDate();
+
+
+    let html = `
+
+        <div class="dia-semana">L</div>
+        <div class="dia-semana">M</div>
+        <div class="dia-semana">M</div>
+        <div class="dia-semana">J</div>
+        <div class="dia-semana">V</div>
+        <div class="dia-semana">S</div>
+        <div class="dia-semana">D</div>
+
+    `;
+
+
+    let inicio =
+        primerDia === 0
+            ? 6
+            : primerDia - 1;
+
+
+    for (let i = 0; i < inicio; i++) {
+
+        html += `
+            <div class="dia vacio"></div>
+        `;
+
+    }
+
+
+    for (
+        let dia = 1;
+        dia <= diasMes;
+        dia++
+    ) {
+
+        html += `
+
+            <button
+                class="dia"
+                onclick="seleccionarDia(${dia})"
+            >
+
+                ${dia}
+
+            </button>
+
+        `;
+
+    }
+
+
+    calendario.innerHTML = html;
+
+}
+
+function cambiarMes(valor) {
+
+    fechaTracker.setMonth(
+        fechaTracker.getMonth() + valor
+    );
+
+    generarCalendario();
+
+}
+
+function seleccionarDia(dia) {
+
+    const año =
+        fechaTracker.getFullYear();
+
+    const mes =
+        fechaTracker.getMonth() + 1;
+
+
+    alert(
+        `Seleccionaste el día ${dia}/${mes}/${año}`
+    );
+
+}
+
