@@ -240,3 +240,122 @@ body {
 
 
 }
+/* =========================
+   LIBRERÍA
+========================= */
+
+.biblioteca {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fill, minmax(180px, 1fr));
+
+    gap: 25px;
+
+    margin-top: 30px;
+
+}
+
+
+.tarjeta-libro {
+
+    background-color: white;
+
+    border-radius: 15px;
+
+    padding: 12px;
+
+    box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.08);
+
+    transition: 0.2s;
+
+}
+
+
+.tarjeta-libro:hover {
+
+    transform: translateY(-4px);
+
+}
+
+
+.portada-libro {
+
+    width: 100%;
+
+    height: 250px;
+
+    object-fit: cover;
+
+    border-radius: 10px;
+
+}
+
+
+.informacion-libro {
+
+    padding: 8px;
+
+}
+
+
+.informacion-libro h3 {
+
+    margin-bottom: 5px;
+
+}
+
+
+.informacion-libro p {
+
+    margin: 5px 0;
+
+}
+
+
+.estrellas {
+
+    letter-spacing: 2px;
+
+    font-size: 18px;
+
+}
+
+
+/* TELÉFONO */
+
+@media (max-width: 600px) {
+
+    .biblioteca {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+        gap: 12px;
+
+    }
+
+
+    .portada-libro {
+
+        height: 210px;
+
+    }
+
+
+    .informacion-libro h3 {
+
+        font-size: 15px;
+
+    }
+
+
+    .informacion-libro p {
+
+        font-size: 13px;
+
+    }
+
+}
