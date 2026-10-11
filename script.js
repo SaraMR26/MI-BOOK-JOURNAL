@@ -3,12 +3,12 @@ let libros = JSON.parse(localStorage.getItem("libros")) || [
         id: 1, numero: 1, titulo: "Un día de Diciembre", autor: "Josie Silver", paginas: 302,
         saga: "Autoconclusivo", publicacion: "10/10/2019", inicio: "26/07/2021", final: "16/08/2021",
         personajes: "Laurie y Jack", estado: "Leído", rating: 4, genero: "Romance", anio: 2026, mes: "agosto",
-        esFavoritoMes: true, sinopsis: "Laurie no cree en el amor a primera vista...", tropes: ["Slow burn"], portada: "images/libro-default.jpg"
+        esFavoritoMes: true, sinopsis: "Laurie no cree en el amor a primera vista. Piensa que una cosa son las películas y otra, la vida real...", tropes: ["Slow burn"], portada: "images/libro-default.jpg"
     }
 ];
 
 let citas = JSON.parse(localStorage.getItem("citas")) || [
-    { id: 1, numero: 1, texto: "—No me esperes, Ginger. Cuatro palabras que se me clavaron...", libro: "Nosotros en la Luna", autor: "Alice Kellen", capitulo: "33", pagina: "154", fecha: "30/05/2022" }
+    { id: 1, numero: 1, texto: "—No me esperes, Ginger. Cuatro palabras que se me clavaron, que dolieron...", libro: "Nosotros en la Luna", autor: "Alice Kellen", capitulo: "33", pagina: "154", fecha: "30/05/2022" }
 ];
 
 let adaptaciones = JSON.parse(localStorage.getItem("adaptaciones")) || [
@@ -16,7 +16,6 @@ let adaptaciones = JSON.parse(localStorage.getItem("adaptaciones")) || [
 ];
 
 let habitTrackerData = JSON.parse(localStorage.getItem("habitTrackerData")) || {};
-let fechaTracker = new Date();
 let anioSeleccionado = 2026;
 
 function guardarEnLocalStorage() {
@@ -149,6 +148,7 @@ function mostrarFavoritosPorAnio(anio = 2026) {
     `;
 }
 
+// --- RECAP MENSUAL ---
 function mostrarRecapPorAnio(anio = 2026) {
     anioSeleccionado = anio;
     const contenido = document.getElementById("contenido");
@@ -157,13 +157,39 @@ function mostrarRecapPorAnio(anio = 2026) {
     let htmlMeses = "";
     meses.forEach(mes => {
         const cant = libros.filter(l => l.estado === "Leído" && (l.anio || 2026) === anioSeleccionado && (l.mes || "").toLowerCase() === mes).length;
-        htmlMeses += `<div class="tarjeta-mes" onclick="alert('Resumen de ${mes}')"><h4 style="text-transform:capitalize; font-family:'Caveat',cursive; font-size:22px;">${mes}</h4><p>Leídos: <strong>${cant}</strong></p></div>`;
+        htmlMeses += `<div class="tarjeta-mes" onclick="mostrarDetalleRecapMes('${mes}', ${anioSeleccionado})"><h4 style="text-transform:capitalize; font-family:'Caveat',cursive; font-size:22px;">${mes}</h4><p>Leídos: <strong>${cant}</strong></p></div>`;
     });
 
-    contenido.innerHTML = `<h2>📊 Recap Mensual</h2><div class="selector-anio"><button class="btn-anio ${anioSeleccionado === 2026 ? 'activo' : ''}" onclick="mostrarRecapPorAnio(2026)">2026</button><button class="btn-anio ${anioSeleccionado === 2025 ? 'activo' : ''}" onclick="mostrarRecapPorAnio(2025)">2025</button></div><div class="grilla-meses">${htmlMeses}</div>`;
+    contenido.innerHTML = `<h2>📊 Recap Mensual</h2><div class="selector-anio"><button class="btn-anio ${anioSeleccionado===2026?'activo':''}" onclick="mostrarRecapPorAnio(2026)">2026</button><button class="btn-anio ${anioSeleccionado===2025?'activo':''}" onclick="mostrarRecapPorAnio(2025)">2025</button></div><div class="grilla-meses">${htmlMeses}</div>`;
 }
 
-// --- READING TRACKER CON DIBUJO DE MÚSICA ---
+function mostrarDetalleRecapMes(mes, anio) {
+    const contenido = document.getElementById("contenido");
+    const librosMes = libros.filter(l => (l.anio || 2026) === anio && (l.mes || "").toLowerCase() === mes);
+    const totalLeidosMes = librosMes.length;
+    const totalPaginasMes = librosMes.reduce((t, l) => t + (Number(l.paginas) || 0), 0);
+
+    const librosOrdenados = [...librosMes].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    const libroMasGustado = librosOrdenados[0];
+    const libroMenosGustado = librosOrdenados[librosOrdenados.length - 1];
+
+    contenido.innerHTML = `
+        <div class="recap-detalle-container">
+            <button onclick="mostrarRecapPorAnio(${anio})" class="boton-volver">← Volver</button>
+            <h2 style="font-family:'Caveat',cursive; font-size:36px; text-transform:capitalize; text-align:center; margin-bottom:15px;">${mes} ${anio}</h2>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+                <div class="formulario-libro"><h4>Más gustado</h4>${libroMasGustado ? `<strong>${libroMasGustado.titulo}</strong><div>${generarEstrellas(libroMasGustado.rating)}</div>` : 'Sin registros'}</div>
+                <div class="formulario-libro"><h4>Menos gustado</h4>${libroMenosGustado ? `<strong>${libroMenosGustado.titulo}</strong><div>${generarEstrellas(libroMenosGustado.rating)}</div>` : 'Sin registros'}</div>
+            </div>
+            <div class="estadisticas-anio-caja">
+                <div class="stat-item"><span>Libros leídos</span><strong>${totalLeidosMes}</strong></div>
+                <div class="stat-item"><span>Páginas leídas</span><strong>${totalPaginasMes}</strong></div>
+            </div>
+        </div>
+    `;
+}
+
+// --- READING TRACKER ANUAL CON MÚSICA ---
 function obtenerClaseRangoPaginas(p) {
     if (p === undefined || p === null || p === "") return "rango-vacio";
     const num = Number(p);
@@ -221,12 +247,18 @@ function mostrarTracker(anio = 2026) {
                     <div class="leyenda-item"><div class="leyenda-color-box rango-100-plus"></div><span>100+</span></div>
                 </div>
                 <div class="tracker-dibujo-musica">
-                    <svg viewBox="0 0 100 140" fill="none" stroke="#2c3e50" stroke-width="2">
-                        <path d="M20 10 Q50 40 20 70 Q50 100 20 130" />
-                        <circle cx="20" cy="40" r="6" fill="#2c3e50"/>
-                        <circle cx="20" cy="100" r="6" fill="#2c3e50"/>
-                        <path d="M26 40 V15 H40 V20" />
+                    <svg viewBox="0 0 140 180" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round">
+                        <path d="M10 20 Q70 50 10 80 Q70 110 10 140" stroke-opacity="0.4" stroke-width="1.5"/>
+                        <path d="M10 26 Q70 56 10 86 Q70 116 10 146" stroke-opacity="0.4" stroke-width="1.5"/>
+                        <path d="M10 32 Q70 62 10 92 Q70 122 10 152" stroke-opacity="0.4" stroke-width="1.5"/>
+                        <ellipse cx="45" cy="45" rx="7" ry="5" fill="#3b82f6" transform="rotate(-15 45 45)"/>
+                        <path d="M51 43 V15" stroke-width="2.5"/>
+                        <path d="M51 15 C65 12 75 22 78 30" fill="none" stroke-width="2.5"/>
+                        <ellipse cx="90" cy="110" rx="7" ry="5" fill="#3b82f6" transform="rotate(-15 90 110)"/>
+                        <path d="M96 108 V80" stroke-width="2.5"/>
+                        <path d="M96 80 C110 77 120 87 123 95" fill="none" stroke-width="2.5"/>
                     </svg>
+                    <p class="tracker-musica-label">Daily Reading</p>
                 </div>
             </div>
         </div>
@@ -242,7 +274,7 @@ function registrarPaginasDia(k, d, m) {
     mostrarTracker(anioSeleccionado);
 }
 
-// --- CITAS AMPLIADAS EN AZUL CLARO ---
+// --- CITAS ---
 function mostrarCitas() {
     const contenido = document.getElementById("contenido");
     let html = citas.map(c => `
@@ -283,15 +315,39 @@ function mostrarFormularioCita() {
     });
 }
 
+// --- AUTORES ---
 function mostrarAutores() {
     const contenido = document.getElementById("contenido");
     let setA = new Set();
     libros.forEach(l => { if (l.autor) setA.add(l.autor.trim()); });
     let lista = Array.from(setA).sort();
-    contenido.innerHTML = `<div class="autores-index-container"><h2 style="text-align:center; font-size:26px; margin-bottom:5px;">AUTORES</h2><div class="autores-grid-3cols">${lista.map(a=>`<button class="autor-btn-item" onclick="alert('${a}')">${a}</button>`).join('')}</div></div>`;
+    let botones = lista.map(a => `<button class="autor-btn-item" onclick="mostrarLibrosDeAutor('${a.replace(/'/g, "\\'")}')">${a}</button>`).join('');
+
+    contenido.innerHTML = `<div class="autores-index-container"><h2 style="text-align:center; font-size:26px; margin-bottom:5px;">AUTORES</h2><div style="width:120px; height:2px; background:#4a77d4; margin:0 auto 20px auto;"></div><div class="autores-grid-3cols">${botones || '<p>Sin autores.</p>'}</div></div>`;
 }
 
-// --- REGISTRO CON MÁS ESTADÍSTICAS ---
+function mostrarLibrosDeAutor(nombreAutor) {
+    const contenido = document.getElementById("contenido");
+    const librosAutor = libros.filter(l => l.autor && l.autor.trim().toLowerCase() === nombreAutor.toLowerCase());
+
+    let tarjetas = librosAutor.map((l, i) => `
+        <div class="tarjeta-libro" onclick="verResenaLibro(${l.id})">
+            <div class="contenedor-portada"><span class="badge-numero">${l.numero || i+1}</span><img src="${l.portada}" onerror="this.src='images/libro-default.jpg'"></div>
+            <div class="estrellas">${generarEstrellas(l.rating)}</div>
+            <div class="linea-subrayado">${l.titulo}</div>
+        </div>
+    `).join('');
+
+    contenido.innerHTML = `
+        <div>
+            <button onclick="mostrarAutores()" class="boton-volver">← Volver</button>
+            <h2 style="text-align:center; margin-bottom:20px;">${nombreAutor}</h2>
+            <div class="lista-libros">${tarjetas || '<p>Sin libros de este autor.</p>'}</div>
+        </div>
+    `;
+}
+
+// --- REGISTRO Y ESTADÍSTICAS ---
 function mostrarRegistro(anio = 2026) {
     anioSeleccionado = anio;
     const contenido = document.getElementById("contenido");
@@ -314,13 +370,156 @@ function mostrarRegistro(anio = 2026) {
                 <div class="stat-item"><span>Promedio ★</span><strong>${promedio}</strong></div>
             </div>
             <div style="overflow-x:auto;"><table class="tabla-registro-planner"><thead><tr><th>#</th><th>ESTADO</th><th>TÍTULO</th><th>AUTOR</th><th>INICIO</th><th>FINAL</th><th>PUNTAJE</th></tr></thead><tbody>${filas}</tbody></table></div>
-            <div style="text-align:center;"><button onclick="alert('Formulario')" class="boton-volver" style="background:#5b9bd5; color:white; padding:10px;">+ Registrar libro</button></div>
+            <div style="text-align:center;"><button onclick="mostrarFormularioNuevoLibro()" class="boton-volver" style="background:#5b9bd5; color:white; padding:10px;">+ Registrar libro y reseña</button></div>
         </div>
     `;
 }
 
+function mostrarFormularioNuevoLibro() {
+    document.getElementById("contenido").innerHTML = `
+        <button onclick="mostrarRegistro(${anioSeleccionado})" class="boton-volver">← Volver</button>
+        <h2>📝 Registrar Libro y Reseña Completa</h2>
+        <form id="form-reg-completo" class="formulario-libro">
+            <label>Título del libro</label><input type="text" id="reg-titulo" required>
+            <label>Autor/a</label><input type="text" id="reg-autor" required>
+            <label>Nº de Páginas</label><input type="number" id="reg-paginas">
+            <label>Saga</label><input type="text" id="reg-saga" placeholder="Ej. Trilogía">
+            <label>Personajes principales</label><input type="text" id="reg-personajes">
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1;"><label>Fecha Inicio</label><input type="text" id="reg-inicio" placeholder="DD/MM/YYYY"></div>
+                <div style="flex:1;"><label>Fecha Final</label><input type="text" id="reg-final" placeholder="DD/MM/YYYY"></div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1;"><label>Año de lectura</label><input type="number" id="reg-anio" value="2026"></div>
+                <div style="flex:1;">
+                    <label>Mes de lectura</label>
+                    <select id="reg-mes">
+                        <option value="enero">Enero</option><option value="febrero">Febrero</option><option value="marzo">Marzo</option>
+                        <option value="abril">Abril</option><option value="mayo">Mayo</option><option value="junio">Junio</option>
+                        <option value="julio">Julio</option><option value="agosto">Agosto</option><option value="septiembre">Septiembre</option>
+                        <option value="octubre">Octubre</option><option value="noviembre">Noviembre</option><option value="diciembre">Diciembre</option>
+                    </select>
+                </div>
+            </div>
+            <label>Sinopsis / Opinión (Amplio espacio)</label>
+            <textarea id="reg-sinopsis" rows="7" placeholder="Escribe aquí la sinopsis..." style="resize:vertical; padding:10px;"></textarea>
+            <label>Tropes / Notas (separados por coma)</label><input type="text" id="reg-tropes" placeholder="Slow burn, etc.">
+            <label>Estado</label>
+            <select id="reg-estado"><option value="Terminado">Terminado</option><option value="Leyendo">Leyendo</option><option value="Por leer">Por leer</option></select>
+            <label>Calificación (Puntaje)</label>
+            <select id="reg-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select>
+            <button type="submit" style="margin-top:10px;">Guardar libro y reseña</button>
+        </form>
+    `;
+
+    document.getElementById("form-reg-completo").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const tropesArr = document.getElementById("reg-tropes").value.split(",").map(t => t.trim()).filter(t => t.length > 0);
+        
+        const nuevoLibro = {
+            id: Date.now(),
+            numero: libros.length + 1,
+            titulo: document.getElementById("reg-titulo").value,
+            autor: document.getElementById("reg-autor").value,
+            paginas: Number(document.getElementById("reg-paginas").value) || 0,
+            saga: document.getElementById("reg-saga").value,
+            personajes: document.getElementById("reg-personajes").value,
+            inicio: document.getElementById("reg-inicio").value,
+            final: document.getElementById("reg-final").value,
+            sinopsis: document.getElementById("reg-sinopsis").value,
+            tropes: tropesArr,
+            anio: Number(document.getElementById("reg-anio").value),
+            mes: document.getElementById("reg-mes").value,
+            estado: document.getElementById("reg-estado").value,
+            rating: Number(document.getElementById("reg-rating").value),
+            portada: "images/libro-default.jpg"
+        };
+
+        libros.push(nuevoLibro);
+        guardarEnLocalStorage();
+        alert("¡Libro y reseña guardados correctamente!");
+        mostrarRegistro(nuevoLibro.anio);
+    });
+}
+
+// --- ADAPTACIONES ---
 function mostrarAdaptaciones() {
-    document.getElementById("contenido").innerHTML = `<div class="autores-index-container"><h2 style="text-align:center;">ADAPTACIONES</h2><div class="autores-grid-3cols">${adaptaciones.map(ad=>`<button class="autor-btn-item">${ad.titulo}</button>`).join('')}</div></div>`;
+    const contenido = document.getElementById("contenido");
+    let botonesHTML = adaptaciones.map(ad => `<button class="autor-btn-item" onclick="verDetalleAdaptacion(${ad.id})">${ad.titulo}</button>`).join('') || '<p>No hay adaptaciones.</p>';
+
+    contenido.innerHTML = `
+        <div class="autores-index-container">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="font-size:26px; margin:0;">ADAPTACIONES</h2>
+                <button onclick="mostrarFormularioAdaptacion()" class="boton-volver" style="margin:0;">+ Nueva adaptación</button>
+            </div>
+            <div style="width:120px; height:2px; background:#4a77d4; margin:0 auto 20px auto;"></div>
+            <div class="autores-grid-3cols">${botonesHTML}</div>
+        </div>
+    `;
+}
+
+function verDetalleAdaptacion(id) {
+    const ad = adaptaciones.find(item => item.id === id);
+    if (!ad) return;
+
+    document.getElementById("contenido").innerHTML = `
+        <div>
+            <button onclick="mostrarAdaptaciones()" class="boton-volver">← Volver</button>
+            <div class="adaptacion-card-detalle">
+                <h2 style="text-align:center; margin-bottom:20px;">${ad.titulo}</h2>
+                <div class="adaptacion-grid-comparativa">
+                    <div class="adaptacion-columna-media">
+                        <img src="${ad.posterPelicula}" class="adaptacion-poster" onerror="this.src='images/libro-default.jpg'">
+                        <div class="adaptacion-estrellas-fila">${generarEstrellas(ad.ratingPelicula)}</div>
+                        <div class="adaptacion-info-detalles">
+                            <div class="adaptacion-info-fila">AÑO: <span>${ad.anioPelicula}</span></div>
+                            <div class="adaptacion-info-fila">PLATAFORMA: <span>${ad.plataforma}</span></div>
+                        </div>
+                    </div>
+                    <div class="adaptacion-divisor-vertical"></div>
+                    <div class="adaptacion-columna-media">
+                        <img src="${ad.portadaLibro}" class="adaptacion-poster" onerror="this.src='images/libro-default.jpg'">
+                        <div class="adaptacion-estrellas-fila">${generarEstrellas(ad.ratingLibro)}</div>
+                        <div class="adaptacion-info-detalles">
+                            <div class="adaptacion-info-fila">AÑO: <span>${ad.anioLibro}</span></div>
+                            <div class="adaptacion-info-fila">AUTOR/A: <span>${ad.autor}</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function mostrarFormularioAdaptacion() {
+    document.getElementById("contenido").innerHTML = `
+        <button onclick="mostrarAdaptaciones()" class="boton-volver">← Volver</button>
+        <h2>🎬 Nueva Adaptación</h2>
+        <form id="form-adapt" class="formulario-libro">
+            <label>Título</label><input type="text" id="ad-titulo" required>
+            <label>Autor</label><input type="text" id="ad-autor">
+            <label>Año libro</label><input type="number" id="ad-anil">
+            <label>Año película</label><input type="number" id="ad-anip">
+            <label>Plataforma</label><input type="text" id="ad-plat">
+            <button type="submit">Guardar</button>
+        </form>
+    `;
+    document.getElementById("form-adapt").addEventListener("submit", (e) => {
+        e.preventDefault();
+        adaptaciones.push({
+            id: Date.now(),
+            titulo: document.getElementById("ad-titulo").value,
+            autor: document.getElementById("ad-autor").value,
+            anioLibro: Number(document.getElementById("ad-anil").value),
+            anioPelicula: Number(document.getElementById("ad-anip").value),
+            plataforma: document.getElementById("ad-plat").value,
+            ratingLibro: 4, ratingPelicula: 5,
+            portadaLibro: "images/libro-default.jpg", posterPelicula: "images/libro-default.jpg"
+        });
+        guardarEnLocalStorage();
+        mostrarAdaptaciones();
+    });
 }
 
 window.onload = () => { mostrarPagina('inicio'); };

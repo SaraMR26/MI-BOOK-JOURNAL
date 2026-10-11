@@ -262,14 +262,6 @@ body {
     margin-bottom: 15px;
 }
 
-.caja-moodboard {
-    display: block;
-    margin: 15px auto;
-    max-width: 280px;
-    border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-}
-
 .metadatos-inferior {
     border-top: 2px solid #333;
     padding-top: 8px;
@@ -346,16 +338,6 @@ body {
     margin-right: 10px;
 }
 
-.decoracion-estante {
-    margin-left: auto;
-    margin-right: 10px;
-    display: flex;
-    align-items: flex-end;
-    pointer-events: none;
-}
-
-.decoracion-svg { width: 65px; height: auto; opacity: 0.85; }
-
 /* 5. FAVORITO DEL MES */
 .contenedor-favoritos { max-width: 850px; margin: 0 auto; }
 .grilla-favoritos-meses { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 20px; }
@@ -371,7 +353,7 @@ body {
 .portada-slot img { width: 100%; height: 100%; object-fit: cover; }
 .portada-slot span { font-size: 11px; color: #ffffff; font-weight: bold; text-align: center; padding: 0 4px; }
 
-/* 6. READING TRACKER ANUAL CON MÚSICA */
+/* 6. READING TRACKER ANUAL CON ILUSTRACIÓN MUSICAL */
 .tracker-anual-container {
     max-width: 950px;
     margin: 0 auto;
@@ -399,7 +381,7 @@ body {
     padding: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 }
-.tracker-leyenda-panel h4 { font-size: 12px; text-transform: uppercase; margin-bottom: 8px; text-align: center; color: #2c3e50; }
+.tracker-leyenda-panel h4 { font-size: 12px; text-transform: uppercase; margin-bottom: 8px; text-align: center; color: #2c3e50; font-weight: bold; letter-spacing: 1px; }
 .leyenda-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; }
 .leyenda-color-box { width: 16px; height: 12px; border: 1px solid #2c3e50; border-radius: 2px; }
 
@@ -407,10 +389,16 @@ body {
     background: #ffffff;
     border: 1px solid #cce4f7;
     border-radius: 10px;
-    padding: 15px;
+    padding: 12px;
     text-align: center;
     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
 }
+.tracker-dibujo-musica svg { width: 100%; max-width: 150px; height: auto; }
+.tracker-musica-label { font-family: 'Caveat', cursive, serif; font-size: 16px; color: #3b82f6; margin: 0; }
 
 /* Colores tracker */
 .rango-0-10 { background-color: #fef08a; }
@@ -433,7 +421,7 @@ body {
 
 .cita-caja-texto {
     flex: 1;
-    background-color: #b5e3fd; /* Fondo azul claro solicitado */
+    background-color: #b5e3fd;
     border-radius: 16px;
     padding: 25px;
     position: relative;
@@ -450,11 +438,11 @@ body {
 }
 .cita-caja-texto blockquote { margin: 0; white-space: pre-wrap; }
 
-/* 8. AUTORES Y ADAPTACIONES (ÍNDICES EN AZUL CLARO / OSCURO) */
+/* 8. AUTORES Y ADAPTACIONES (ÍNDICES) */
 .autores-index-container { max-width: 850px; margin: 0 auto; }
 .autores-grid-3cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
 .autor-btn-item {
-    background-color: #3b82f6; /* Azul claro/oscuro elegante */
+    background-color: #3b82f6;
     color: white; border: none; padding: 12px 14px; border-radius: 8px;
     font-family: Georgia, serif; font-size: 13px; font-style: italic; font-weight: bold;
     cursor: pointer; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -480,7 +468,7 @@ body {
 .badge-estado.leyendo { background-color: #f9e79f; color: #7d6608; }
 .badge-estado.por-leer { background-color: #f5b7b1; color: #78281f; }
 
-/* 10. RECAP MESES EN AZUL */
+/* 10. RECAP MESES */
 .tarjeta-mes {
     background: #d1effe;
     border: 1px solid #bce1f7;
@@ -491,6 +479,20 @@ body {
     transition: transform 0.2s;
 }
 .tarjeta-mes:hover { transform: translateY(-3px); }
+
+/* ADAPTACIONES TARJETA DOBLE */
+.adaptacion-card-detalle {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06); max-width: 800px; margin: 15px auto;
+}
+.adaptacion-grid-comparativa { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.adaptacion-columna-media { display: flex; flex-direction: column; align-items: center; text-align: center; width: 42%; }
+.adaptacion-poster { width: 170px; height: 250px; object-fit: cover; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.15); margin-bottom: 12px; }
+.adaptacion-estrellas-fila { display: flex; gap: 3px; color: #fbc02d; font-size: 20px; margin-bottom: 10px; }
+.adaptacion-info-detalles { width: 100%; text-align: left; font-size: 13px; display: flex; flex-direction: column; gap: 6px; border-top: 1.5px solid #2c3e50; padding-top: 8px; margin-top: 5px; }
+.adaptacion-info-fila { font-weight: bold; color: #2c3e50; }
+.adaptacion-info-fila span { font-weight: normal; color: #4a4a4a; }
+.adaptacion-divisor-vertical { width: 2px; height: 260px; background-color: #e2e8f0; }
 
 /* FORMULARIOS Y COMPLEMENTOS */
 .formulario-libro {
@@ -513,6 +515,7 @@ body {
     .tabs-side { flex-direction: row; width: 100%; overflow-x: auto; padding: 5px 0; }
     .tab-btn { writing-mode: horizontal-tb; transform: none !important; border-radius: 6px !important; }
     .journal-body { width: 100%; margin: 10px 0; padding: 20px; }
-    .tracker-anual-container { flex-direction: column; align-items: center; }
-    .tracker-panel-derecho { width: 100%; }
+    .tracker-anual-container, .adaptacion-grid-comparativa { flex-direction: column; align-items: center; }
+    .tracker-panel-derecho, .adaptacion-columna-media { width: 100%; }
+    .adaptacion-divisor-vertical { width: 100%; height: 2px; }
 }
