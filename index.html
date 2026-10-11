@@ -1,231 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Book Journal Digital</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Journal</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="journal-wrapper">
-    
-    <!-- PESTAÑAS IZQUIERDAS -->
-    <nav class="tabs-side tabs-left">
-      <button class="tab-btn active" data-tab="inicio" style="--tab-bg: #D8B4F8;">🏠 Inicio</button>
-      <button class="tab-btn" data-tab="estanterias" style="--tab-bg: #FFD1DC;">📖 Estanterías</button>
-      <button class="tab-btn" data-tab="recap" style="--tab-bg: #FFDFBA;">📊 Recap</button>
-      <button class="tab-btn" data-tab="tracker" style="--tab-bg: #FFFFBA;">📅 Tracker</button>
-      <button class="tab-btn" data-tab="autores" style="--tab-bg: #BAFFC9;">👩 Autores</button>
-      <button class="tab-btn" data-tab="adaptaciones" style="--tab-bg: #BAE1FF;">🎬 Adaptaciones</button>
-    </nav>
 
-    <!-- CUERPO PRINCIPAL DEL JOURNAL -->
-    <main class="journal-body">
-      
-      <!-- 1. INICIO -->
-      <section id="inicio" class="tab-content active">
-        <header class="section-header">
-          <h1>Bienvenida a tu Book Journal 📚</h1>
-          <p>Tu espacio personal para registrar, organizar y reseñar tus lecturas.</p>
-        </header>
-        <div class="welcome-card">
-          <h2>ÍNDICE GENERAL</h2>
-          <div class="index-grid">
-            <button onclick="activarPestana('libreria')" class="index-btn" style="background:#E2F0CB;">📚 Librería</button>
-            <button onclick="activarPestana('estanterias')" class="index-btn" style="background:#FFD1DC;">📖 Estanterías</button>
-            <button onclick="activarPestana('resenas')" class="index-btn" style="background:#FFDAC1;">⭐ Reseñas</button>
-            <button onclick="activarPestana('recap')" class="index-btn" style="background:#FFDFBA;">📊 Recap Mensual</button>
-            <button onclick="activarPestana('favorito')" class="index-btn" style="background:#FFB7B2;">💚 Favorito del Mes</button>
-            <button onclick="activarPestana('tracker')" class="index-btn" style="background:#FFFFBA;">📅 Reading Tracker</button>
-            <button onclick="activarPestana('citas')" class="index-btn" style="background:#E0FEFE;">💬 Citas</button>
-            <button onclick="activarPestana('autores')" class="index-btn" style="background:#BAFFC9;">👩 Autores</button>
-            <button onclick="activarPestana('registro')" class="index-btn" style="background:#D6C7FF;">📝 Registro de Libros</button>
-            <button onclick="activarPestana('adaptaciones')" class="index-btn" style="background:#BAE1FF;">🎬 Adaptaciones</button>
-          </div>
-        </div>
-      </section>
+    <!-- ENCABEZADO -->
+    <header class="encabezado">
+        <h1>BOOK JOURNAL</h1>
+        <p>Mi diario de lectura</p>
+    </header>
 
-      <!-- 2. LIBRERÍA -->
-      <section id="libreria" class="tab-content">
-        <header class="section-header">
-          <h1>Librería General</h1>
-          <p>Catálogo visual de todos tus libros registrados</p>
-        </header>
-        <div class="library-grid" id="libreriaContainer"></div>
-      </section>
+    <!-- CONTENEDOR PRINCIPAL TIPO CUADERNO -->
+    <div class="journal-wrapper">
 
-      <!-- 3. ESTANTERÍAS -->
-      <section id="estanterias" class="tab-content">
-        <header class="section-header">
-          <h1>Estanterías Virtuales</h1>
-          <p>Tus repisas organizadas por tomos</p>
-        </header>
-        <div class="bookshelf">
-          <div class="shelf-row">
-            <div class="book-spine" style="--bg: #E8A598; height: 140px;"><span>Cien Años de Soledad</span></div>
-            <div class="book-spine" style="--bg: #A3C1AD; height: 160px;"><span>Orgullo y Prejuicio</span></div>
-            <div class="book-spine" style="--bg: #F4C2C2; height: 130px;"><span>Hamnet</span></div>
-            <div class="book-spine" style="--bg: #B5EAD7; height: 155px;"><span>Dune</span></div>
-          </div>
-          <div class="shelf-wood"></div>
-          <div class="shelf-row">
-            <div class="book-spine" style="--bg: #C7CEEA; height: 150px;"><span>1984</span></div>
-            <div class="book-spine" style="--bg: #E2F0CB; height: 135px;"><span>Fahrenheit 451</span></div>
-            <div class="book-spine" style="--bg: #FFDAC1; height: 165px;"><span>El Hobbit</span></div>
-          </div>
-          <div class="shelf-wood"></div>
-        </div>
-      </section>
+        <!-- MENU LATERAL IZQUIERDO -->
+        <aside class="tabs-side tabs-left">
+            <button onclick="mostrarPagina('inicio')" class="tab-btn active" data-tab="inicio" style="--tab-bg: #D8B4F8;">🏠 <span>Inicio</span></button>
+            <button onclick="mostrarPagina('libreria')" class="tab-btn" data-tab="libreria" style="--tab-bg: #E2F0CB;">📚 <span>Librería</span></button>
+            <button onclick="mostrarPagina('estanterias')" class="tab-btn" data-tab="estanterias" style="--tab-bg: #FFD1DC;">📖 <span>Estanterías</span></button>
+            <button onclick="mostrarPagina('resenas')" class="tab-btn" data-tab="resenas" style="--tab-bg: #FFDAC1;">⭐ <span>Reseñas</span></button>
+            <button onclick="mostrarPagina('favorito')" class="tab-btn" data-tab="favorito" style="--tab-bg: #FFB7B2;">💚 <span>Favorito</span></button>
+            <button onclick="mostrarPagina('tracker')" class="tab-btn" data-tab="tracker" style="--tab-bg: #FFFFBA;">📅 <span>Tracker</span></button>
+        </aside>
 
-      <!-- 4. RESEÑAS -->
-      <section id="resenas" class="tab-content">
-        <header class="section-header">
-          <h1>Ficha de Reseña</h1>
-          <p>Análisis y valoración detallada de tus lecturas</p>
-        </header>
-        <article class="review-card">
-          <div class="review-left">
-            <div class="book-cover-placeholder"><span>Portada del Libro</span></div>
-            <div class="star-rating" id="reviewRating">
-              <span data-star="1">★</span>
-              <span data-star="2">★</span>
-              <span data-star="3">★</span>
-              <span data-star="4">★</span>
-              <span data-star="5">★</span>
-            </div>
-          </div>
-          <div class="review-right">
-            <h2>Un día de diciembre</h2>
-            <p class="author">Josie Silver</p>
-            <div class="metadata-grid">
-              <div><strong>Páginas:</strong> 302</div>
-              <div><strong>Saga:</strong> Autoconclusivo</div>
-              <div><strong>Inicio:</strong> 26/07/2021</div>
-              <div><strong>Final:</strong> 16/08/2021</div>
-            </div>
-            <div class="review-section">
-              <h3>Notas & Tropes</h3>
-              <p class="tags">#BoyfriendBestFriend #SlowBurn #SecondChance</p>
-            </div>
-            <div class="review-section">
-              <h3>Sinopsis & Opinión</h3>
-              <div class="notes-area" contenteditable="true">
-                Escribe aquí tu reseña personal sobre la historia...
-              </div>
-            </div>
-          </div>
-        </article>
-      </section>
+        <!-- CONTENIDO CENTRAL DE LAS PÁGINAS -->
+        <main id="contenido" class="journal-body">
+            <h2>🏠 Bienvenida</h2>
+            <p>Bienvenida a tu Book Journal. Selecciona una sección para comenzar.</p>
+        </main>
 
-      <!-- 5. FAVORITO DEL MES -->
-      <section id="favorito" class="tab-content">
-        <header class="section-header">
-          <h1>Favorito del Mes</h1>
-          <p>Tu mejor lectura seleccionada de cada mes</p>
-        </header>
-        <div class="months-grid" id="monthsGrid"></div>
-      </section>
+        <!-- MENU LATERAL DERECHO -->
+        <aside class="tabs-side tabs-right">
+            <button onclick="mostrarPagina('citas')" class="tab-btn" data-tab="citas" style="--tab-bg: #E0FEFE;">💬 <span>Citas</span></button>
+            <button onclick="mostrarPagina('autores')" class="tab-btn" data-tab="autores" style="--tab-bg: #BAFFC9;">👩 <span>Autores</span></button>
+            <button onclick="mostrarPagina('registro')" class="tab-btn" data-tab="registro" style="--tab-bg: #D6C7FF;">📝 <span>Registro</span></button>
+            <button onclick="mostrarPagina('adaptaciones')" class="tab-btn" data-tab="adaptaciones" style="--tab-bg: #BAE1FF;">🎬 <span>Adaptaciones</span></button>
+            <button onclick="mostrarPagina('recap')" class="tab-btn" data-tab="recap" style="--tab-bg: #FFDFBA;">📊 <span>Recap</span></button>
+        </aside>
 
-      <!-- 6. TRACKER -->
-      <section id="tracker" class="tab-content">
-        <header class="section-header">
-          <h1>Reading Tracker</h1>
-          <p>Seguimiento diario de hábitos de lectura</p>
-        </header>
-        <div class="tracker-container">
-          <div class="tracker-controls">
-            <button id="prevMonth">← Anterior</button>
-            <h3 id="currentMonthLabel"></h3>
-            <button id="nextMonth">Siguiente →</button>
-          </div>
-          <div class="tracker-calendar" id="calendarGrid"></div>
-        </div>
-      </section>
+    </div>
 
-      <!-- 7. CITAS -->
-      <section id="citas" class="tab-content">
-        <header class="section-header">
-          <h1>Citas Favoritas</h1>
-          <p>Frases inolvidables de tus libros</p>
-        </header>
-        <div class="quotes-list" id="quotesContainer"></div>
-      </section>
-
-      <!-- 8. AUTORES -->
-      <section id="autores" class="tab-content">
-        <header class="section-header">
-          <h1>Directorio de Autores</h1>
-          <p>Tus escritores destacados y sus obras</p>
-        </header>
-        <div class="authors-grid" id="authorsContainer"></div>
-      </section>
-
-      <!-- 9. REGISTRO DE LIBROS -->
-      <section id="registro" class="tab-content">
-        <header class="section-header">
-          <h1>Registro de Nuevo Libro</h1>
-          <p>Añade un nuevo título a tu diario</p>
-        </header>
-        <form id="bookForm" class="planner-form">
-          <label>Título:</label>
-          <input type="text" id="bookTitle" required>
-          <label>Autor:</label>
-          <input type="text" id="bookAuthor" required>
-          <div class="form-row">
-            <div>
-              <label>Páginas:</label>
-              <input type="number" id="bookPages">
-            </div>
-            <div>
-              <label>Estado:</label>
-              <select id="bookStatus">
-                <option value="Por leer">Por leer</option>
-                <option value="Leyendo">Leyendo</option>
-                <option value="Leído">Leído</option>
-              </select>
-            </div>
-          </div>
-          <button type="submit" class="submit-btn">Guardar Libro</button>
-        </form>
-      </section>
-
-      <!-- 10. ADAPTACIONES -->
-      <section id="adaptaciones" class="tab-content">
-        <header class="section-header">
-          <h1>Adaptaciones Cine & TV</h1>
-          <p>Comparativa entre libro y pantalla</p>
-        </header>
-        <div class="adaptations-grid" id="adaptationsContainer"></div>
-      </section>
-
-      <!-- 11. RECAP -->
-      <section id="recap" class="tab-content">
-        <header class="section-header">
-          <h1>Recap Mensual</h1>
-          <p>Estadísticas y metas alcanzadas</p>
-        </header>
-        <div class="recap-stats">
-          <div class="stat-card"><span>📚</span><strong id="statRead">3</strong><small>Libros Leídos</small></div>
-          <div class="stat-card"><span>📖</span><strong id="statPages">1,050</strong><small>Páginas Totales</small></div>
-          <div class="stat-card"><span>⭐</span><strong id="statAvg">4.5</strong><small>Promedio Calificación</small></div>
-        </div>
-      </section>
-
-    </main>
-
-    <!-- PESTAÑAS DERECHAS -->
-    <nav class="tabs-side tabs-right">
-      <button class="tab-btn" data-tab="libreria" style="--tab-bg: #E2F0CB;">📚 Librería</button>
-      <button class="tab-btn" data-tab="resenas" style="--tab-bg: #FFDAC1;">⭐ Reseñas</button>
-      <button class="tab-btn" data-tab="favorito" style="--tab-bg: #FFB7B2;">💚 Favorito</button>
-      <button class="tab-btn" data-tab="citas" style="--tab-bg: #E0FEFE;">💬 Citas</button>
-      <button class="tab-btn" data-tab="registro" style="--tab-bg: #D6C7FF;">📝 Registro</button>
-    </nav>
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
