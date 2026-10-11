@@ -3,18 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Journal</title>
+    <title>Book Journal Digital</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- ENCABEZADO -->
+    <!-- ENCABEZADO SUPERIOR -->
     <header class="encabezado">
         <h1>BOOK JOURNAL</h1>
         <p>Mi diario de lectura</p>
     </header>
 
-    <!-- CONTENEDOR PRINCIPAL TIPO CUADERNO -->
+    <!-- CONTENEDOR TIPO PLANNER / CUADERNO -->
     <div class="journal-wrapper">
 
         <!-- MENU LATERAL IZQUIERDO -->
@@ -22,15 +25,13 @@
             <button onclick="mostrarPagina('inicio')" class="tab-btn active" data-tab="inicio" style="--tab-bg: #D8B4F8;">🏠 <span>Inicio</span></button>
             <button onclick="mostrarPagina('libreria')" class="tab-btn" data-tab="libreria" style="--tab-bg: #E2F0CB;">📚 <span>Librería</span></button>
             <button onclick="mostrarPagina('estanterias')" class="tab-btn" data-tab="estanterias" style="--tab-bg: #FFD1DC;">📖 <span>Estanterías</span></button>
-            <button onclick="mostrarPagina('resenas')" class="tab-btn" data-tab="resenas" style="--tab-bg: #FFDAC1;">⭐ <span>Reseñas</span></button>
             <button onclick="mostrarPagina('favorito')" class="tab-btn" data-tab="favorito" style="--tab-bg: #FFB7B2;">💚 <span>Favorito</span></button>
             <button onclick="mostrarPagina('tracker')" class="tab-btn" data-tab="tracker" style="--tab-bg: #FFFFBA;">📅 <span>Tracker</span></button>
         </aside>
 
-        <!-- CONTENIDO CENTRAL DE LAS PÁGINAS -->
+        <!-- CONTENIDO CENTRAL DE PÁGINAS -->
         <main id="contenido" class="journal-body">
-            <h2>🏠 Bienvenida</h2>
-            <p>Bienvenida a tu Book Journal. Selecciona una sección para comenzar.</p>
+            <!-- Carga dinámica por JavaScript -->
         </main>
 
         <!-- MENU LATERAL DERECHO -->
