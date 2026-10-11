@@ -14,31 +14,34 @@
     <!-- ENCABEZADO SUPERIOR -->
     <header class="encabezado">
         <h1>BOOK JOURNAL</h1>
-        <p>Mi diario de lectura</p>
+        <p>Mi diario de lectura digital</p>
     </header>
 
-    <!-- CONTENEDOR TIPO PLANNER / CUADERNO -->
+    <!-- CONTENEDOR PRINCIPAL PLANNER -->
     <div class="journal-wrapper">
 
-        <!-- MENU LATERAL IZQUIERDO -->
+        <!-- MENÚ LATERAL IZQUIERDO -->
         <aside class="tabs-side tabs-left">
             <button onclick="mostrarPagina('inicio')" class="tab-btn active" data-tab="inicio" style="--tab-bg: #D8B4F8;">🏠 <span>Inicio</span></button>
             <button onclick="mostrarPagina('libreria')" class="tab-btn" data-tab="libreria" style="--tab-bg: #E2F0CB;">📚 <span>Librería</span></button>
             <button onclick="mostrarPagina('estanterias')" class="tab-btn" data-tab="estanterias" style="--tab-bg: #FFD1DC;">📖 <span>Estanterías</span></button>
             <button onclick="mostrarPagina('favorito')" class="tab-btn" data-tab="favorito" style="--tab-bg: #FFB7B2;">💚 <span>Favorito</span></button>
             <button onclick="mostrarPagina('tracker')" class="tab-btn" data-tab="tracker" style="--tab-bg: #FFFFBA;">📅 <span>Tracker</span></button>
+            <button onclick="mostrarPagina('proximos')" class="tab-btn" data-tab="proximos" style="--tab-bg: #C5CAE9;">⏳ <span>Próximos</span></button>
         </aside>
 
-        <!-- CONTENIDO CENTRAL DE PÁGINAS -->
+        <!-- HOJA CENTRAL DEL CUADERNO -->
         <main id="contenido" class="journal-body">
-            <!-- Carga dinámica por JavaScript -->
+            <!-- Carga dinámica con JavaScript -->
         </main>
 
-        <!-- MENU LATERAL DERECHO -->
+        <!-- MENÚ LATERAL DERECHO -->
         <aside class="tabs-side tabs-right">
+            <button onclick="mostrarPagina('metas')" class="tab-btn" data-tab="metas" style="--tab-bg: #FFE082;">🎯 <span>Metas</span></button>
             <button onclick="mostrarPagina('citas')" class="tab-btn" data-tab="citas" style="--tab-bg: #E0FEFE;">💬 <span>Citas</span></button>
             <button onclick="mostrarPagina('autores')" class="tab-btn" data-tab="autores" style="--tab-bg: #BAFFC9;">👩 <span>Autores</span></button>
             <button onclick="mostrarPagina('registro')" class="tab-btn" data-tab="registro" style="--tab-bg: #D6C7FF;">📝 <span>Registro</span></button>
+            <button onclick="mostrarPagina('estadisticas')" class="tab-btn" data-tab="estadisticas" style="--tab-bg: #B2EBF2;">📈 <span>Estadísticas</span></button>
             <button onclick="mostrarPagina('adaptaciones')" class="tab-btn" data-tab="adaptaciones" style="--tab-bg: #BAE1FF;">🎬 <span>Adaptaciones</span></button>
             <button onclick="mostrarPagina('recap')" class="tab-btn" data-tab="recap" style="--tab-bg: #FFDFBA;">📊 <span>Recap</span></button>
         </aside>
