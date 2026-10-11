@@ -519,3 +519,27 @@ body {
     .tracker-panel-derecho, .adaptacion-columna-media { width: 100%; }
     .adaptacion-divisor-vertical { width: 100%; height: 2px; }
 }
+
+/* ==========================================
+   BOTONES DE ACCIÓN (EDITAR / ELIMINAR)
+   ========================================== */
+.btn-tabla-accion {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.btn-tabla-accion:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Estrellas en tono dorado cálido para un contraste perfecto sobre fondos azul pastel */
+.estrellas {
+    color: #f39c12 !important;
+    font-size: 18px;
+    margin: 4px 0;
+}

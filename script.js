@@ -1,10 +1,9 @@
-// --- BASE DE DATOS LOCAL (INICIALIZADA VACÍA) ---
+// --- BASE DE DATOS LOCAL ---
 let libros = JSON.parse(localStorage.getItem("libros")) || [];
 let citas = JSON.parse(localStorage.getItem("citas")) || [];
 let adaptaciones = JSON.parse(localStorage.getItem("adaptaciones")) || [];
 let habitTrackerData = JSON.parse(localStorage.getItem("habitTrackerData")) || {};
 
-// Año predeterminado al abrir la aplicación
 let anioSeleccionado = 2026;
 
 function guardarEnLocalStorage() {
@@ -24,18 +23,24 @@ function normalizarClase(t) {
     return t ? t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-") : "";
 }
 
-// --- GENERADOR DEL SELECTOR DE AÑOS (DESDE 2024 HASTA EL AÑO ACTUAL) ---
+// --- SELECTOR DE AÑOS DINÁMICO (Detecta automáticamente años desde 2021) ---
 function obtenerSelectorAniosHTML(funcionCallback) {
-    const anios = [2026, 2025, 2024];
+    let aniosSet = new Set([2026, 2025, 2024, 2023, 2022, 2021]);
+    libros.forEach(l => {
+        if (l.anio) aniosSet.add(Number(l.anio));
+    });
+
+    let aniosOrdenados = Array.from(aniosSet).sort((a, b) => b - a);
+
     let html = `<div class="selector-anio">`;
-    anios.forEach(a => {
+    aniosOrdenados.forEach(a => {
         html += `<button class="btn-anio ${anioSeleccionado === a ? 'activo' : ''}" onclick="${funcionCallback}(${a})">${a}</button>`;
     });
     html += `</div>`;
     return html;
 }
 
-// --- NAVEGACIÓN PRINCIPAL ---
+// --- NAVEGACIÓN ---
 function mostrarPagina(pagina) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         if (btn.getAttribute('data-tab') === pagina) btn.classList.add('active');
@@ -61,7 +66,7 @@ function mostrarLibreria() {
     if (libros.length === 0) {
         contenido.innerHTML = `
             <h2 style="font-size:24px; font-weight:bold; margin-bottom:15px;">LIBRERÍA</h2>
-            <p style="text-align:center; color:#666; margin-top:40px;">Tu librería está vacía. Ve a la sección de <strong>Registro</strong> para añadir tus lecturas.</p>
+            <p style="text-align:center; color:#666; margin-top:40px;">Tu librería está vacía. Ve a <strong>Registro</strong> para añadir tus lecturas.</p>
         `;
         return;
     }
@@ -80,6 +85,7 @@ function mostrarLibreria() {
     contenido.innerHTML = `<h2 style="font-size:24px; font-weight:bold; margin-bottom:15px;">LIBRERÍA</h2><div class="lista-libros">${tarjetas}</div>`;
 }
 
+// --- FICHA RESEÑA DETALLADA CON BOTONES EDITAR Y BORRAR ---
 function verResenaLibro(id) {
     const l = libros.find(item => item.id === id);
     if (!l) return;
@@ -87,7 +93,10 @@ function verResenaLibro(id) {
         <div class="vista-resena">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <button onclick="mostrarLibreria()" class="boton-volver">← Volver</button>
-                <div class="resena-titulo-head">RESEÑA ${l.numero || 1}</div>
+                <div>
+                    <button onclick="editarLibro(${l.id})" class="boton-volver" style="background:#fef08a; margin-right:6px;">✏️ Editar</button>
+                    <button onclick="eliminarLibro(${l.id})" class="boton-volver" style="background:#f87171; color:white;">🗑️ Borrar</button>
+                </div>
             </div>
             <div class="resena-contenido">
                 <div class="columna-izquierda-resena">
@@ -95,10 +104,10 @@ function verResenaLibro(id) {
                     <div class="estrellas" style="font-size:22px; margin-top:8px;">${generarEstrellas(l.rating)}</div>
                     <div class="linea-subrayado" style="text-align:center;">${l.titulo}</div>
                     <div style="font-size:13px; text-align:center; margin-bottom:10px;">${l.autor}</div>
-                    <div class="caja-notas"><h4>NOTAS:</h4><ul>${(l.tropes || []).map(t=>`<li>${t}</li>`).join('') || '<li>Sin notas adicionales</li>'}</ul></div>
+                    <div class="caja-notas"><h4>NOTAS:</h4><ul>${(l.tropes || []).map(t=>`<li>${t}</li>`).join('') || '<li>Sin notas</li>'}</ul></div>
                 </div>
                 <div class="columna-derecha-resena">
-                    <div class="texto-sinopsis">${l.sinopsis || "Sin opinión o sinopsis registrada."}</div>
+                    <div class="texto-sinopsis">${l.sinopsis || "Sin sinopsis."}</div>
                     <div class="metadatos-inferior">
                         <div class="metadatos-row"><span>PÁGINAS: ${l.paginas||'---'}</span><span>SAGA: ${l.saga||'Autoconclusivo'}</span></div>
                         <div class="metadatos-row"><span>INICIO: ${l.inicio||'---'}</span><span>FINAL: ${l.final||'---'}</span></div>
@@ -115,7 +124,7 @@ function mostrarEstanterias() {
     const contenido = document.getElementById("contenido");
     const terminados = libros.filter(l => l.estado === "Leído" || l.estado === "Terminado");
     if (terminados.length === 0) { 
-        contenido.innerHTML = `<h2>📖 Estantería Virtual</h2><p style="text-align:center; color:#666; margin-top:40px;">Aún no tienes libros registrados como terminados o leídos.</p>`; 
+        contenido.innerHTML = `<h2>📖 Estantería Virtual</h2><p style="text-align:center; color:#666; margin-top:40px;">No hay libros registrados como leídos o terminados.</p>`; 
         return; 
     }
     
@@ -189,8 +198,8 @@ function mostrarDetalleRecapMes(mes, anio) {
             <button onclick="mostrarRecapPorAnio(${anio})" class="boton-volver">← Volver</button>
             <h2 style="font-family:'Caveat',cursive; font-size:36px; text-transform:capitalize; text-align:center; margin-bottom:15px;">${mes} ${anio}</h2>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
-                <div class="formulario-libro"><h4>Más gustado</h4>${libroMasGustado ? `<strong>${libroMasGustado.titulo}</strong><div>${generarEstrellas(libroMasGustado.rating)}</div>` : 'Sin registros'}</div>
-                <div class="formulario-libro"><h4>Menos gustado</h4>${libroMenosGustado ? `<strong>${libroMenosGustado.titulo}</strong><div>${generarEstrellas(libroMenosGustado.rating)}</div>` : 'Sin registros'}</div>
+                <div class="formulario-libro"><h4>Más gustado</h4>${libroMasGustado ? `<strong>${libroMasGustado.titulo}</strong><div class="estrellas">${generarEstrellas(libroMasGustado.rating)}</div>` : 'Sin registros'}</div>
+                <div class="formulario-libro"><h4>Menos gustado</h4>${libroMenosGustado ? `<strong>${libroMenosGustado.titulo}</strong><div class="estrellas">${generarEstrellas(libroMenosGustado.rating)}</div>` : 'Sin registros'}</div>
             </div>
             <div class="estadisticas-anio-caja">
                 <div class="stat-item"><span>Libros leídos</span><strong>${totalLeidosMes}</strong></div>
@@ -200,7 +209,7 @@ function mostrarDetalleRecapMes(mes, anio) {
     `;
 }
 
-// --- READING TRACKER ANUAL CON ILUSTRACIÓN MUSICAL ---
+// --- READING TRACKER ANUAL ---
 function obtenerClaseRangoPaginas(p) {
     if (p === undefined || p === null || p === "") return "rango-vacio";
     const num = Number(p);
@@ -265,9 +274,6 @@ function mostrarTracker(anio = 2026) {
                         <ellipse cx="45" cy="45" rx="7" ry="5" fill="#3b82f6" transform="rotate(-15 45 45)"/>
                         <path d="M51 43 V15" stroke-width="2.5"/>
                         <path d="M51 15 C65 12 75 22 78 30" fill="none" stroke-width="2.5"/>
-                        <ellipse cx="90" cy="110" rx="7" ry="5" fill="#3b82f6" transform="rotate(-15 90 110)"/>
-                        <path d="M96 108 V80" stroke-width="2.5"/>
-                        <path d="M96 80 C110 77 120 87 123 95" fill="none" stroke-width="2.5"/>
                     </svg>
                     <p class="tracker-musica-label">Daily Reading</p>
                 </div>
@@ -393,7 +399,7 @@ function mostrarLibrosDeAutor(nombreAutor) {
     `;
 }
 
-// --- REGISTRO Y TABLA ---
+// --- REGISTRO CON TABLA Y BOTONES DE EDITAR Y BORRAR CON CONFIRMACIÓN ---
 function mostrarRegistro(anio = 2026) {
     anioSeleccionado = anio;
     const contenido = document.getElementById("contenido");
@@ -403,7 +409,21 @@ function mostrarRegistro(anio = 2026) {
     const pendientes = lAnio.filter(l => l.estado === "Por leer").length;
     const promedio = terminados > 0 ? (lAnio.reduce((acc, l) => acc + (l.rating || 0), 0) / terminados).toFixed(1) : 0;
 
-    let filas = lAnio.map((l, i) => `<tr><td><b>${l.numero||i+1}</b></td><td><span class="badge-estado ${normalizarClase(l.estado)}">${l.estado}</span></td><td style="text-align:left;"><b>${l.titulo}</b></td><td style="text-align:left;">${l.autor}</td><td>${l.inicio||'---'}</td><td>${l.final||'---'}</td><td style="color:#fbc02d;">${generarEstrellas(l.rating)}</td></tr>`).join('') || `<tr><td colspan="7" style="padding:15px; color:#777;">Sin registros para el año ${anioSeleccionado}.</td></tr>`;
+    let filas = lAnio.map((l, i) => `
+        <tr>
+            <td><b>${l.numero||i+1}</b></td>
+            <td><span class="badge-estado ${normalizarClase(l.estado)}">${l.estado}</span></td>
+            <td style="text-align:left;"><b>${l.titulo}</b></td>
+            <td style="text-align:left;">${l.autor}</td>
+            <td>${l.inicio||'---'}</td>
+            <td>${l.final||'---'}</td>
+            <td style="color:#f39c12;">${generarEstrellas(l.rating)}</td>
+            <td>
+                <button class="btn-tabla-accion" onclick="editarLibro(${l.id})" title="Editar libro">✏️</button>
+                <button class="btn-tabla-accion" onclick="eliminarLibro(${l.id})" title="Borrar libro">🗑️</button>
+            </td>
+        </tr>
+    `).join('') || `<tr><td colspan="8" style="padding:15px; color:#777;">Sin registros para el año ${anioSeleccionado}.</td></tr>`;
 
     contenido.innerHTML = `
         <div class="contenedor-registro-planner">
@@ -415,10 +435,118 @@ function mostrarRegistro(anio = 2026) {
                 <div class="stat-item"><span>Pendientes</span><strong>${pendientes}</strong></div>
                 <div class="stat-item"><span>Promedio ★</span><strong>${promedio}</strong></div>
             </div>
-            <div style="overflow-x:auto;"><table class="tabla-registro-planner"><thead><tr><th>#</th><th>ESTADO</th><th>TÍTULO</th><th>AUTOR</th><th>INICIO</th><th>FINAL</th><th>PUNTAJE</th></tr></thead><tbody>${filas}</tbody></table></div>
+            <div style="overflow-x:auto;">
+                <table class="tabla-registro-planner">
+                    <thead><tr><th>#</th><th>ESTADO</th><th>TÍTULO</th><th>AUTOR</th><th>INICIO</th><th>FINAL</th><th>PUNTAJE</th><th>ACCIONES</th></tr></thead>
+                    <tbody>${filas}</tbody>
+                </table>
+            </div>
             <div style="text-align:center;"><button onclick="mostrarFormularioNuevoLibro()" class="boton-volver" style="background:#5b9bd5; color:white; padding:10px 18px; font-weight:bold;">+ Registrar libro y reseña</button></div>
         </div>
     `;
+}
+
+// --- EDITAR LIBRO CON CONFIRMACIÓN ---
+function editarLibro(id) {
+    const l = libros.find(item => item.id === id);
+    if (!l) return;
+
+    if (!confirm(`¿Estás seguro/a de que deseas editar la información de "${l.titulo}"?`)) {
+        return;
+    }
+
+    document.getElementById("contenido").innerHTML = `
+        <button onclick="mostrarRegistro(${anioSeleccionado})" class="boton-volver">← Cancelar edición</button>
+        <h2>✏️ Editar Libro y Reseña</h2>
+        <form id="form-edit-completo" class="formulario-libro">
+            <label>Título del libro</label><input type="text" id="reg-titulo" value="${l.titulo || ''}" required>
+            <label>Autor/a</label><input type="text" id="reg-autor" value="${l.autor || ''}" required>
+            <label>Nº de Páginas</label><input type="number" id="reg-paginas" value="${l.paginas || ''}">
+            <label>Saga</label><input type="text" id="reg-saga" value="${l.saga || ''}">
+            <label>Personajes principales</label><input type="text" id="reg-personajes" value="${l.personajes || ''}">
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1;"><label>Fecha Inicio</label><input type="text" id="reg-inicio" value="${l.inicio || ''}"></div>
+                <div style="flex:1;"><label>Fecha Final</label><input type="text" id="reg-final" value="${l.final || ''}"></div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1;"><label>Año de lectura</label><input type="number" id="reg-anio" value="${l.anio || 2026}"></div>
+                <div style="flex:1;">
+                    <label>Mes de lectura</label>
+                    <select id="reg-mes">
+                        <option value="enero" ${l.mes === 'enero' ? 'selected' : ''}>Enero</option>
+                        <option value="febrero" ${l.mes === 'febrero' ? 'selected' : ''}>Febrero</option>
+                        <option value="marzo" ${l.mes === 'marzo' ? 'selected' : ''}>Marzo</option>
+                        <option value="abril" ${l.mes === 'abril' ? 'selected' : ''}>Abril</option>
+                        <option value="mayo" ${l.mes === 'mayo' ? 'selected' : ''}>Mayo</option>
+                        <option value="junio" ${l.mes === 'junio' ? 'selected' : ''}>Junio</option>
+                        <option value="julio" ${l.mes === 'julio' ? 'selected' : ''}>Julio</option>
+                        <option value="agosto" ${l.mes === 'agosto' ? 'selected' : ''}>Agosto</option>
+                        <option value="septiembre" ${l.mes === 'septiembre' ? 'selected' : ''}>Septiembre</option>
+                        <option value="octubre" ${l.mes === 'octubre' ? 'selected' : ''}>Octubre</option>
+                        <option value="noviembre" ${l.mes === 'noviembre' ? 'selected' : ''}>Noviembre</option>
+                        <option value="diciembre" ${l.mes === 'diciembre' ? 'selected' : ''}>Diciembre</option>
+                    </select>
+                </div>
+            </div>
+            <label>Sinopsis / Opinión</label>
+            <textarea id="reg-sinopsis" rows="7" style="resize:vertical; padding:10px;">${l.sinopsis || ''}</textarea>
+            <label>Tropes / Notas (separados por coma)</label><input type="text" id="reg-tropes" value="${(l.tropes || []).join(', ')}">
+            <label>¿Es favorito del mes?</label>
+            <select id="reg-fav"><option value="false" ${!l.esFavoritoMes ? 'selected' : ''}>No</option><option value="true" ${l.esFavoritoMes ? 'selected' : ''}>Sí</option></select>
+            <label>Estado</label>
+            <select id="reg-estado">
+                <option value="Terminado" ${l.estado === 'Terminado' ? 'selected' : ''}>Terminado</option>
+                <option value="Leyendo" ${l.estado === 'Leyendo' ? 'selected' : ''}>Leyendo</option>
+                <option value="Por leer" ${l.estado === 'Por leer' ? 'selected' : ''}>Por leer</option>
+            </select>
+            <label>Calificación (Puntaje)</label>
+            <select id="reg-rating">
+                <option value="5" ${l.rating === 5 ? 'selected' : ''}>★★★★★</option>
+                <option value="4" ${l.rating === 4 ? 'selected' : ''}>★★★★</option>
+                <option value="3" ${l.rating === 3 ? 'selected' : ''}>★★★</option>
+                <option value="2" ${l.rating === 2 ? 'selected' : ''}>★★</option>
+                <option value="1" ${l.rating === 1 ? 'selected' : ''}>★</option>
+            </select>
+            <label>Ruta o URL de Portada</label><input type="text" id="reg-portada" value="${l.portada || 'images/libro-default.jpg'}">
+            <button type="submit" style="margin-top:10px;">Guardar Cambios</button>
+        </form>
+    `;
+
+    document.getElementById("form-edit-completo").addEventListener("submit", (e) => {
+        e.preventDefault();
+        l.titulo = document.getElementById("reg-titulo").value;
+        l.autor = document.getElementById("reg-autor").value;
+        l.paginas = Number(document.getElementById("reg-paginas").value) || 0;
+        l.saga = document.getElementById("reg-saga").value;
+        l.personajes = document.getElementById("reg-personajes").value;
+        l.inicio = document.getElementById("reg-inicio").value;
+        l.final = document.getElementById("reg-final").value;
+        l.sinopsis = document.getElementById("reg-sinopsis").value;
+        l.tropes = document.getElementById("reg-tropes").value.split(",").map(t => t.trim()).filter(t => t.length > 0);
+        l.anio = Number(document.getElementById("reg-anio").value);
+        l.mes = document.getElementById("reg-mes").value;
+        l.esFavoritoMes = document.getElementById("reg-fav").value === "true";
+        l.estado = document.getElementById("reg-estado").value;
+        l.rating = Number(document.getElementById("reg-rating").value);
+        l.portada = document.getElementById("reg-portada").value.trim() || "images/libro-default.jpg";
+
+        guardarEnLocalStorage();
+        alert("¡Información del libro actualizada correctamente!");
+        mostrarRegistro(l.anio);
+    });
+}
+
+// --- ELIMINAR LIBRO CON CONFIRMACIÓN ---
+function eliminarLibro(id) {
+    const l = libros.find(item => item.id === id);
+    if (!l) return;
+
+    if (confirm(`¿Estás seguro/a de que deseas borrar permanentemente el libro "${l.titulo}"? Esta acción no se puede deshacer.`)) {
+        libros = libros.filter(item => item.id !== id);
+        guardarEnLocalStorage();
+        alert("El libro ha sido eliminado.");
+        mostrarRegistro(anioSeleccionado);
+    }
 }
 
 function mostrarFormularioNuevoLibro() {
@@ -456,6 +584,7 @@ function mostrarFormularioNuevoLibro() {
             <select id="reg-estado"><option value="Terminado">Terminado</option><option value="Leyendo">Leyendo</option><option value="Por leer">Por leer</option></select>
             <label>Calificación (Puntaje)</label>
             <select id="reg-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select>
+            <label>Ruta o URL de Portada</label><input type="text" id="reg-portada" placeholder="images/mi-libro.jpg o URL">
             <button type="submit" style="margin-top:10px;">Guardar libro y reseña</button>
         </form>
     `;
@@ -481,7 +610,7 @@ function mostrarFormularioNuevoLibro() {
             esFavoritoMes: document.getElementById("reg-fav").value === "true",
             estado: document.getElementById("reg-estado").value,
             rating: Number(document.getElementById("reg-rating").value),
-            portada: "images/libro-default.jpg"
+            portada: document.getElementById("reg-portada").value.trim() || "images/libro-default.jpg"
         };
 
         libros.push(nuevoLibro);
@@ -533,7 +662,7 @@ function verDetalleAdaptacion(id) {
                 <div class="adaptacion-grid-comparativa">
                     <div class="adaptacion-columna-media">
                         <img src="${ad.posterPelicula}" class="adaptacion-poster" onerror="this.src='images/libro-default.jpg'">
-                        <div class="adaptacion-estrellas-fila">${generarEstrellas(ad.ratingPelicula)}</div>
+                        <div class="estrellas">${generarEstrellas(ad.ratingPelicula)}</div>
                         <div class="adaptacion-info-detalles">
                             <div class="adaptacion-info-fila">AÑO: <span>${ad.anioPelicula || '---'}</span></div>
                             <div class="adaptacion-info-fila">PLATAFORMA: <span>${ad.plataforma || '---'}</span></div>
@@ -542,7 +671,7 @@ function verDetalleAdaptacion(id) {
                     <div class="adaptacion-divisor-vertical"></div>
                     <div class="adaptacion-columna-media">
                         <img src="${ad.portadaLibro}" class="adaptacion-poster" onerror="this.src='images/libro-default.jpg'">
-                        <div class="adaptacion-estrellas-fila">${generarEstrellas(ad.ratingLibro)}</div>
+                        <div class="estrellas">${generarEstrellas(ad.ratingLibro)}</div>
                         <div class="adaptacion-info-detalles">
                             <div class="adaptacion-info-fila">AÑO: <span>${ad.anioLibro || '---'}</span></div>
                             <div class="adaptacion-info-fila">AUTOR/A: <span>${ad.autor || '---'}</span></div>
