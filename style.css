@@ -1,766 +1,138 @@
-* {
-
-    box-sizing: border-box;
-
+:root {
+  --bg-pastel: #EBF8FC;
+  --journal-bg: #FFFFFF;
+  --text-primary: #4A5568;
+  --text-light: #A0AEC0;
+  --border-color: #E2E8F0;
+  --wood-color: #D4A373;
+  --wood-dark: #BC8A5F;
+  --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  --font-main: 'Poppins', sans-serif;
+  --font-handwriting: 'Caveat', cursive;
 }
 
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-
-    margin: 0;
-
-    min-height: 100vh;
-
-    font-family: Georgia, serif;
-
-    background-color: #e8f6f7;
-
-    color: #4a4a4a;
-
+  background-color: var(--bg-pastel);
+  font-family: var(--font-main);
+  color: var(--text-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
 }
 
-
-/* =========================
-   ENCABEZADO
-========================= */
-
-.encabezado {
-
-    text-align: center;
-
-    padding: 25px 15px;
-
-    background-color: #d9eff1;
-
+.journal-wrapper {
+  display: flex;
+  width: 100%;
+  max-width: 1100px;
+  height: 780px;
 }
 
-
-.encabezado h1 {
-
-    margin: 0;
-
-    font-size: 32px;
-
-    letter-spacing: 2px;
-
+.tabs-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 20px;
+  z-index: 2;
 }
 
-
-.encabezado p {
-
-    margin: 8px 0 0;
-
-    font-size: 16px;
-
+.tab-btn {
+  border: none;
+  background-color: var(--tab-bg, #DDD);
+  color: #4A5568;
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 14px 6px;
+  cursor: pointer;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
+.tabs-left .tab-btn { border-radius: 8px 0 0 8px; transform: rotate(180deg); }
+.tabs-right .tab-btn { border-radius: 0 8px 8px 0; }
 
-/* =========================
-   ESTRUCTURA
-========================= */
+.tab-btn.active { font-weight: 700; color: #1A202C; }
+.tabs-left .tab-btn.active { transform: rotate(180deg) translateX(4px); }
+.tabs-right .tab-btn.active { transform: translateX(4px); }
 
-.app {
-
-    display: flex;
-
-    min-height: calc(100vh - 110px);
-
+.journal-body {
+  flex: 1;
+  background-color: var(--journal-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  padding: 35px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
-
-/* =========================
-   MENU
-========================= */
-
-.menu {
-
-    width: 180px;
-
-    padding: 20px 12px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 10px;
-
-    background-color: #d3ebed;
-
+.section-header {
+  border-bottom: 2px dashed var(--border-color);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
 }
 
-
-.boton-menu {
-
-    border: none;
-
-    border-radius: 12px;
-
-    padding: 12px;
-
-    background-color: white;
-
-    font-family: Georgia, serif;
-
-    font-size: 14px;
-
-    cursor: pointer;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    transition: 0.2s;
-
+.section-header h1 {
+  font-family: var(--font-handwriting);
+  font-size: 2.3rem;
+  color: #319795;
 }
 
+.tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+.tab-content.active { display: block; }
 
-.boton-menu:hover {
-
-    transform: translateX(3px);
-
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-
-/* =========================
-   CONTENIDO
-========================= */
-
-.contenido {
-
-    flex: 1;
-
-    padding: 35px;
-
-    max-width: 1100px;
-
-}
-
-
-.contenido h2 {
-
-    text-align: center;
-
-    font-size: 28px;
-
-}
-
-
-/* =========================
-   TELEFONO
-========================= */
-
-@media (max-width: 700px) {
-
-
-    .encabezado {
-
-        padding: 18px 10px;
-
-    }
-
-
-    .encabezado h1 {
-
-        font-size: 24px;
-
-    }
-
-
-    .app {
-
-        display: block;
-
-        padding-bottom: 70px;
-
-    }
-
-
-    .menu {
-
-        position: fixed;
-
-        bottom: 0;
-
-        left: 0;
-
-        right: 0;
-
-        width: 100%;
-
-        height: 65px;
-
-        padding: 6px;
-
-        display: flex;
-
-        flex-direction: row;
-
-        justify-content: space-around;
-
-        gap: 3px;
-
-        z-index: 100;
-
-    }
-
-
-    .boton-menu {
-
-        flex: 1;
-
-        padding: 5px;
-
-        flex-direction: column;
-
-        justify-content: center;
-
-        gap: 2px;
-
-        font-size: 10px;
-
-        border-radius: 8px;
-
-    }
-
-
-    .boton-menu span {
-
-        display: block;
-
-    }
-
-
-    .contenido {
-
-        padding: 20px 15px;
-
-    }
-
-
-}
-/* =========================
-   LIBRERÍA
-========================= */
-
-/* Se cambió .biblioteca a .lista-libros para coincidir con tu JS */
-.lista-libros {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 25px;
-    margin-top: 30px;
-}
-
-.tarjeta-libro {
-    background-color: white;
-    border-radius: 15px;
-    padding: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-    transition: 0.2s;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-.tarjeta-libro:hover {
-    transform: translateY(-4px);
-}
-
-/* Se adaptó a las imágenes directas dentro de la tarjeta */
-.tarjeta-libro img {
-    width: 100%;
-    height: 250px;
-    object-fit: cover;
-    border-radius: 10px;
-}
-
-.tarjeta-libro h3 {
-    margin: 10px 0 5px;
-    font-size: 16px;
-}
-
-.tarjeta-libro p {
-    margin: 4px 0;
-    font-size: 14px;
-}
-
-.estrellas {
-    letter-spacing: 2px;
-    font-size: 18px;
-    color: #f39c12; /* Color dorado para las estrellas */
-}
-
-/* Estilos para las etiquetas de estado (Leído, Leyendo, etc.) */
-.badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: bold;
-    margin-top: 6px;
-}
-
-.badge.leído {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.badge.leyendo {
-    background-color: #fff3cd;
-    color: #856404;
-}
-
-.badge.por-leer {
-    background-color: #e2e3e5;
-    color: #383d41;
-}
-
-/* RESPONSIVO TELÉFONO */
-@media (max-width: 600px) {
-    .lista-libros {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-
-    .tarjeta-libro img {
-        height: 180px;
-    }
-
-    .tarjeta-libro h3 {
-        font-size: 14px;
-    }
-
-    .tarjeta-libro p {
-        font-size: 12px;
-    }
-}
-
-/* =========================
-   DETALLE DEL LIBRO
-========================= */
-
-.boton-volver {
-
-    border: none;
-
-    background: white;
-
-    padding: 10px 15px;
-
-    border-radius: 10px;
-
-    cursor: pointer;
-
-    margin-bottom: 20px;
-
-}
-
-
-.detalle-libro {
-
-    display: flex;
-
-    gap: 30px;
-
-    align-items: flex-start;
-
-}
-
-
-.portada-detalle {
-
-    width: 220px;
-
-    height: 320px;
-
-    object-fit: cover;
-
-    border-radius: 12px;
-
-}
-
-
-.seccion-libro {
-
-    background: white;
-
-    margin-top: 25px;
-
-    padding: 20px;
-
-    border-radius: 15px;
-
-}
-
-
-/* TELÉFONO */
-
-@media (max-width: 600px) {
-
-    .detalle-libro {
-
-        flex-direction: column;
-
-        align-items: center;
-
-        text-align: center;
-
-    }
-
-
-    .portada-detalle {
-
-        width: 180px;
-
-        height: 270px;
-
-    }
-
-}
-
-/* =========================
-   READING TRACKER
-========================= */
-
-.tracker {
-    max-width: 900px;
-    margin: auto;
-}
-
-
-.tracker-controles {
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    gap: 25px;
-
-    margin-bottom: 25px;
-
-}
-
-
-.tracker-controles button {
-
-    border: none;
-
-    background: white;
-
-    border-radius: 10px;
-
-    padding: 10px 15px;
-
-    cursor: pointer;
-
-    font-size: 18px;
-
-}
-
-
-.calendario {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(7, 1fr);
-
-    gap: 8px;
-
-}
-
-
-.dia-semana {
-
-    text-align: center;
-
-    font-weight: bold;
-
-    padding: 10px;
-
-}
-
-
-.dia {
-
-    min-height: 70px;
-
-    border: none;
-
-    border-radius: 10px;
-
-    background-color: white;
-
-    cursor: pointer;
-
-    font-family: Georgia, serif;
-
-}
-
-
-.dia:hover {
-
-    transform: scale(1.03);
-
-}
-
-
-.vacio {
-
-    background-color: transparent;
-
-}
-
-
-@media (max-width: 600px) {
-
-    .calendario {
-
-        gap: 4px;
-
-    }
-
-
-    .dia {
-
-        min-height: 50px;
-
-        font-size: 12px;
-
-    }
-
-}
-
-/* =========================
-   CITAS
-========================= */
-
-.lista-citas {
-
-    display: grid;
-
-    gap: 20px;
-
-    margin-top: 25px;
-
-}
-
-
-.tarjeta-cita {
-
-    background-color: white;
-
-    padding: 25px;
-
-    border-radius: 15px;
-
-}
-
-
-.tarjeta-cita blockquote {
-
-    font-size: 18px;
-
-    font-style: italic;
-
-    margin: 0 0 20px;
-
-}
-
-
-.boton-principal {
-
-    border: none;
-
-    border-radius: 10px;
-
-    padding: 12px 18px;
-
-    cursor: pointer;
-
-}
-
-/* =========================
-   AUTORES
-========================= */
-
-.lista-autores {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(auto-fill, minmax(180px, 1fr));
-
-    gap: 20px;
-
-}
-
-
-.tarjeta-autor {
-
-    background-color: white;
-
-    padding: 15px;
-
-    border-radius: 15px;
-
-    text-align: center;
-
-}
-
-
-.tarjeta-autor img {
-
-    width: 120px;
-
-    height: 120px;
-
-    border-radius: 50%;
-
-    object-fit: cover;
-
-}
-
-.lista-adaptaciones {
-
-    display: grid;
-
-    gap: 20px;
-
-}
-
-
-.tarjeta-adaptacion {
-
-    background-color: white;
-
-    padding: 20px;
-
-    border-radius: 15px;
-
-}
-
-/* =========================
-   RECAP
-========================= */
-
-.estadisticas {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 20px;
-
-    margin-top: 30px;
-
-}
-
-
-.estadistica {
-
-    background-color: white;
-
-    padding: 25px;
-
-    border-radius: 15px;
-
-    text-align: center;
-
-}
-
-
-.estadistica span {
-
-    display: block;
-
-    font-size: 30px;
-
-}
-
-
-.estadistica strong {
-
-    display: block;
-
-    font-size: 30px;
-
-    margin: 10px 0;
-
-}
-
-
-.estadistica small {
-
-    display: block;
-
-}
-
-
-@media (max-width: 600px) {
-
-    .estadisticas {
-
-        grid-template-columns: 1fr;
-
-    }
-
-}
-
-/* =========================
-   FORMULARIOS
-========================= */
-
-.formulario-libro {
-    background: white;
-    padding: 25px;
-    border-radius: 15px;
-    max-width: 500px;
-    margin: 20px auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-.formulario-libro label {
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.formulario-libro input,
-.formulario-libro select,
-.formulario-libro textarea {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 14px;
-}
-
-.formulario-libro textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-.formulario-libro button {
-    background-color: #a2d2d6;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-family: Georgia, serif;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: 0.2s;
-}
-
-.formulario-libro button:hover {
-    background-color: #8ec3c7;
-}
+/* 1. INICIO */
+.welcome-card { text-align: center; }
+.index-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+.index-btn { border: none; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+/* 2. LIBRERÍA */
+.library-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+.book-card { background: #F7FAFC; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border-color); }
+
+/* 3. ESTANTERÍAS */
+.bookshelf { display: flex; flex-direction: column; }
+.shelf-row { display: flex; align-items: flex-end; padding: 0 20px; gap: 12px; min-height: 160px; }
+.book-spine { width: 36px; border-radius: 4px 4px 0 0; display: flex; align-items: center; justify-content: center; }
+.book-spine span { writing-mode: vertical-rl; transform: rotate(180deg); color: #FFF; font-size: 0.7rem; }
+.shelf-wood { height: 16px; background: linear-gradient(to bottom, var(--wood-color), var(--wood-dark)); border-radius: 2px; margin-bottom: 25px; }
+
+/* 4. RESEÑAS */
+.review-card { display: flex; gap: 20px; background: #FAF5FF; padding: 20px; border-radius: 12px; border: 1px solid #E9D8FD; }
+.book-cover-placeholder { width: 130px; height: 180px; background: #E2E8F0; border-radius: 6px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 0.75rem; }
+.star-rating { color: #F6AD55; font-size: 1.3rem; cursor: pointer; }
+.metadata-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #FFF; padding: 8px; border-radius: 6px; font-size: 0.8rem; margin: 10px 0; }
+.notes-area { background: #FFF; border: 1px solid #E2E8F0; padding: 8px; border-radius: 6px; min-height: 70px; font-family: var(--font-handwriting); font-size: 1.1rem; }
+
+/* 5. FAVORITO DEL MES */
+.months-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.month-card { background: #F7FAFC; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; text-align: center; }
+.month-cover { height: 100px; background: #EDF2F7; border: 1px dashed #CBD5E0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; margin-top: 6px; }
+
+/* 6. TRACKER */
+.tracker-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.tracker-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.day-cell { background: #F7FAFC; padding: 10px; text-align: center; border-radius: 4px; border: 1px solid var(--border-color); font-size: 0.8rem; }
+
+/* 7. CITAS & 8. AUTORES & 10. ADAPTACIONES */
+.quote-card, .author-card, .adaptation-item { background: #FFF; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+
+/* 9. REGISTRO */
+.planner-form { display: flex; flex-direction: column; gap: 10px; }
+.planner-form input, .planner-form select { padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; }
+.form-row { display: flex; gap: 10px; }
+.submit-btn { background: #319795; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
+
+/* 11. RECAP */
+.recap-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+.stat-card { background: #F7FAFC; padding: 20px; text-align: center; border-radius: 8px; border: 1px solid var(--border-color); }
+.stat-card strong { display: block; font-size: 1.5rem; }
