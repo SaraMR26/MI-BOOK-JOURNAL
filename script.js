@@ -1183,20 +1183,25 @@ function importarAdaptacionesCSV(event) {
         for (let i = 1; i < lineas.length; i++) {
             const linea = lineas[i].trim();
             if (!linea) continue;
-            const c = linea.split(",");
+            
+            // Separa respetando campos entre comillas
+            const c = linea.split(",").map(val => val.replace(/^"|"$/g, "").trim());
             if (c.length >= 2) {
+                const posterPeli = c[5] ? c[5] : "images/libro-default.jpg";
+                const portadaLib = c[9] ? c[9] : "images/libro-default.jpg";
+
                 adaptaciones.push({
                     id: Date.now() + i,
-                    titulo: c[0] ? c[0].replace(/"/g, "").trim() : "Obra",
-                    nombrePelicula: c[1] ? c[1].replace(/"/g, "").trim() : "",
+                    titulo: c[0] || "Obra",
+                    nombrePelicula: c[1] || "",
                     anioPelicula: Number(c[2]) || "",
-                    plataforma: c[3] ? c[3].replace(/"/g, "").trim() : "",
+                    plataforma: c[3] || "",
                     ratingPelicula: Number(c[4]) || 0,
-                    posterPelicula: c[5] ? c[5].replace(/"/g, "").trim() : "images/libro-default.jpg",
-                    autor: c[6] ? c[6].replace(/"/g, "").trim() : "",
+                    posterPelicula: posterPeli.includes(".") ? posterPeli : "images/libro-default.jpg",
+                    autor: c[6] || "",
                     anioLibro: Number(c[7]) || "",
                     ratingLibro: Number(c[8]) || 0,
-                    portadaLibro: c[9] ? c[9].replace(/"/g, "").trim() : "images/libro-default.jpg"
+                    portadaLibro: portadaLib.includes(".") ? portadaLib : "images/libro-default.jpg"
                 });
                 count++;
             }
