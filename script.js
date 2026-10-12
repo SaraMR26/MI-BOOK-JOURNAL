@@ -424,12 +424,12 @@ function registrarPaginasDia(k, d, m) {
 
 // --- CITAS (COLORES PASTEL POR AÑO, NÚMERO DE LIBRERÍA, EDICIÓN Y BORRADO) ---
 const mapaColoresAnio = {
-    2026: "#b5e3fd", // Azul pastel
-    2025: "#ffd1dc", // Rosa pastel
-    2024: "#e2f0cb", // Verde pastel
-    2023: "#d8b4f8", // Lila pastel
-    2022: "#ffffba", // Amarillo pastel
-    2021: "#ffdfba"  // Naranja pastel
+    2026: "#b5e3fd",
+    2025: "#ffd1dc",
+    2024: "#e2f0cb",
+    2023: "#d8b4f8",
+    2022: "#ffffba",
+    2021: "#ffdfba"
 };
 
 function mostrarCitas() {
@@ -614,24 +614,21 @@ function mostrarLibrosDeAutor(nombreAutor) {
     contenido.innerHTML = `<div><button onclick="mostrarAutores()" class="boton-volver">← Volver</button><h2 style="text-align:center; margin-bottom:20px;">${nombreAutor}</h2><div class="lista-libros">${tarjetas}</div></div>`;
 }
 
-// --- REGISTRO DE LECTURAS ---
+// --- REGISTRO DE LECTURAS (SIN IDIOMA Y SIN COLUMNA #) ---
 function mostrarRegistro(anio = 2026) {
     anioSeleccionado = anio;
     const contenido = document.getElementById("contenido");
     const lAnio = libros.filter(l => (l.anio || 2026) === anioSeleccionado);
     const terminadosList = lAnio.filter(l => l.estado === "Terminado" || l.estado === "Leído");
 
-    let filasTabla = terminadosList.map((l, i) => {
+    let filasTabla = terminadosList.map((l) => {
         const dias = calcularDiasLectura(l.inicio, l.final);
-        const idiomaClase = (l.idioma || "Español").toLowerCase().includes("ing") ? "ingles" : "espanol";
 
         return `
             <tr>
-                <td><b>${l.numero || i+1}</b></td>
                 <td><span class="badge-estado ${normalizarClase(l.estado)}">${l.estado}</span></td>
                 <td style="text-align:left;"><b>${l.titulo}</b></td>
                 <td style="text-align:left;">${l.autor}</td>
-                <td><span class="badge-idioma ${idiomaClase}">${l.idioma || 'Español'}</span></td>
                 <td>${l.inicio || '---'}</td>
                 <td>${l.final || '---'}</td>
                 <td style="font-weight:bold; color:#319795;">${dias}</td>
@@ -642,7 +639,7 @@ function mostrarRegistro(anio = 2026) {
                 </td>
             </tr>
         `;
-    }).join('') || `<tr><td colspan="10" style="padding:15px; color:#777;">Sin libros terminados.</td></tr>`;
+    }).join('') || `<tr><td colspan="8" style="padding:15px; color:#777;">Sin libros terminados.</td></tr>`;
 
     contenido.innerHTML = `
         <div class="contenedor-registro-planner">
@@ -651,7 +648,18 @@ function mostrarRegistro(anio = 2026) {
 
             <div style="overflow-x:auto;">
                 <table class="tabla-registro-planner">
-                    <thead><tr><th>#</th><th>Estado</th><th>Título</th><th>Autor</th><th>Idioma</th><th>Inicio</th><th>Final</th><th>Días</th><th>Puntaje</th><th>Acciones</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Estado</th>
+                            <th>Título</th>
+                            <th>Autor</th>
+                            <th>Inicio</th>
+                            <th>Final</th>
+                            <th>Días</th>
+                            <th>Puntaje</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
                     <tbody>${filasTabla}</tbody>
                 </table>
             </div>
@@ -665,7 +673,8 @@ function mostrarRegistro(anio = 2026) {
     `;
 }
 
-// --- IMPORTACIÓN CSV ADAPTADA A TU EXCEL ---
+// --- IMPORTACIÓN CSV ADAPTADA AL ORDEN DE TUS ENCABEZADOS ---
+// Orden esperado en tu CSV: titulo,autor,pagina,INICIO,FINAL,estado,rating,PERSONAJES_1,PERSONAJES_2,PUBLICACION,IDIOMA,DESCARGADO,SAGA,PORTADA
 function importarDesdeCSV(event) {
     const archivo = event.target.files[0];
     if (!archivo) return;
@@ -698,9 +707,12 @@ function importarDesdeCSV(event) {
                 const personaje2 = c[8] ? c[8].replace(/"/g, "").trim() : "";
                 const personajes = [personaje1, personaje2].filter(p => p).join(", ");
                 
+                // Idioma en índice 10
                 const idioma = c[10] ? c[10].replace(/"/g, "").trim() : "Español";
+                // Saga en índice 12
                 const saga = c[12] ? c[12].replace(/"/g, "").trim() : "Autoconclusivo";
                 
+                // Portada en la última columna
                 const ultimaColumnaIdx = c.length - 1;
                 const portadaRaw = c[ultimaColumnaIdx] ? c[ultimaColumnaIdx].replace(/"/g, "").trim() : "images/libro-default.jpg";
                 const portada = portadaRaw.includes(".") ? portadaRaw : "images/libro-default.jpg";
@@ -969,7 +981,7 @@ function mostrarFormularioNuevoLibro(estadoPredeterminado = "Terminado") {
     });
 }
 
-// --- ADAPTACIONES (ESTRELLAS GRANDES, BADGES FLOTANTES) ---
+// --- ADAPTACIONES ---
 function mostrarAdaptaciones() {
     const contenido = document.getElementById("contenido");
     if (adaptaciones.length === 0) {
