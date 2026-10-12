@@ -668,13 +668,13 @@ function mostrarRegistro(anio = 2026) {
                 <button onclick="mostrarFormularioNuevoLibro('Terminado')" class="boton-volver" style="background:#5b9bd5; color:white; padding:10px 18px; font-weight:bold; margin:0;">+ Registrar Libro</button>
                 <input type="file" id="input-csv-excel" accept=".csv" style="display:none" onchange="importarDesdeCSV(event)">
                 <button onclick="document.getElementById('input-csv-excel').click()" class="boton-volver" style="background:#48bb78; color:white; padding:10px 18px; font-weight:bold; margin:0;">📂 Importar desde Excel (CSV)</button>
+                <button onclick="vaciarTodosLosDatos()" class="boton-volver" style="background:#f87171; color:white; padding:10px 18px; font-weight:bold; margin:0;">🗑️ Vaciar Todo</button>
             </div>
         </div>
     `;
 }
 
 // --- IMPORTACIÓN CSV ADAPTADA AL ORDEN DE TUS ENCABEZADOS ---
-// Orden esperado en tu CSV: titulo,autor,pagina,INICIO,FINAL,estado,rating,PERSONAJES_1,PERSONAJES_2,PUBLICACION,IDIOMA,DESCARGADO,SAGA,PORTADA
 function importarDesdeCSV(event) {
     const archivo = event.target.files[0];
     if (!archivo) return;
@@ -707,12 +707,9 @@ function importarDesdeCSV(event) {
                 const personaje2 = c[8] ? c[8].replace(/"/g, "").trim() : "";
                 const personajes = [personaje1, personaje2].filter(p => p).join(", ");
                 
-                // Idioma en índice 10
                 const idioma = c[10] ? c[10].replace(/"/g, "").trim() : "Español";
-                // Saga en índice 12
                 const saga = c[12] ? c[12].replace(/"/g, "").trim() : "Autoconclusivo";
                 
-                // Portada en la última columna
                 const ultimaColumnaIdx = c.length - 1;
                 const portadaRaw = c[ultimaColumnaIdx] ? c[ultimaColumnaIdx].replace(/"/g, "").trim() : "images/libro-default.jpg";
                 const portada = portadaRaw.includes(".") ? portadaRaw : "images/libro-default.jpg";
@@ -1209,6 +1206,14 @@ function importarAdaptacionesCSV(event) {
         mostrarAdaptaciones();
     };
     lector.readAsText(archivo);
+}
+
+// Función para vaciar todos los datos registrados
+function vaciarTodosLosDatos() {
+    if (confirm("⚠️ ¿Estás segura de que deseas borrar TODOS los libros y datos registrados? Esta acción no se puede deshacer.")) {
+        localStorage.clear();
+        location.reload();
+    }
 }
 
 // Carga inicial
