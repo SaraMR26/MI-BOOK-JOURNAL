@@ -29,11 +29,20 @@ function generarEstrellas(rating, inactivo = false) {
     return `<span style="${colorEstilo} font-size:18px;">${s}</span>`;
 }
 
+function generarEstrellasGrandes(rating, inactivo = false) {
+    let s = "";
+    const num = Number(rating) || 0;
+    for (let i = 1; i <= 5; i++) {
+        s += i <= num ? "★" : "☆";
+    }
+    const colorEstilo = inactivo ? "color: #e53e3e !important;" : "color: #f39c12 !important;";
+    return `<span style="${colorEstilo} font-size:24px; letter-spacing:2px;">${s}</span>`;
+}
+
 function normalizarClase(t) {
     return t ? t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-") : "";
 }
 
-// Obtener número del libro en la librería por título
 function obtenerNumeroLibroEnLibreria(tituloLibro) {
     if (!tituloLibro) return "";
     const index = libros.findIndex(l => l.titulo && l.titulo.trim().toLowerCase() === tituloLibro.trim().toLowerCase());
@@ -90,7 +99,7 @@ function mostrarPagina(pagina) {
     else if (pagina === "recap") mostrarRecapPorAnio();
 }
 
-// --- LIBRERÍA (CON TERMINADOS Y PRÓXIMOS) ---
+// --- LIBRERÍA (TERMINADOS + PRÓXIMOS) ---
 function mostrarLibreria() {
     const contenido = document.getElementById("contenido");
     if (libros.length === 0) {
@@ -101,7 +110,7 @@ function mostrarLibreria() {
     let tarjetas = "";
     libros.forEach((l, i) => {
         const num = l.numero || (i + 1);
-        const idiomaClase = (l.idioma || "Español").toLowerCase() === "inglés" || (l.idioma || "Español").toLowerCase() === "ingles" ? "ingles" : "espanol";
+        const idiomaClase = (l.idioma || "Español").toLowerCase().includes("ing") ? "ingles" : "espanol";
         const estadoTxt = (l.estado === "Próximo" || l.estado === "Por leer") ? `<span class="badge-estado proximo" style="font-size:9px; margin-top:2px;">Próximo</span>` : "";
 
         tarjetas += `
@@ -125,7 +134,7 @@ function verResenaLibro(id) {
     const l = libros.find(item => item.id === id);
     if (!l) return;
     const dias = calcularDiasLectura(l.inicio, l.final);
-    const idiomaClase = (l.idioma || "Español").toLowerCase() === "inglés" || (l.idioma || "Español").toLowerCase() === "ingles" ? "ingles" : "espanol";
+    const idiomaClase = (l.idioma || "Español").toLowerCase().includes("ing") ? "ingles" : "espanol";
 
     document.getElementById("contenido").innerHTML = `
         <div class="vista-resena">
@@ -171,7 +180,7 @@ function mostrarProximos() {
         tarjetas = `<p style="text-align:center; color:#666; margin-top:30px; grid-column: span 3;">No tienes libros próximos.</p>`;
     } else {
         proximos.forEach((l) => {
-            const idiomaClase = (l.idioma || "Español").toLowerCase() === "inglés" || (l.idioma || "Español").toLowerCase() === "ingles" ? "ingles" : "espanol";
+            const idiomaClase = (l.idioma || "Español").toLowerCase().includes("ing") ? "ingles" : "espanol";
             tarjetas += `
                 <div class="tarjeta-libro" style="cursor:default;">
                     <div class="contenedor-portada">
@@ -413,7 +422,7 @@ function registrarPaginasDia(k, d, m) {
     mostrarTracker(anioSeleccionado);
 }
 
-// --- CITAS (CON COLORES PASTEL POR AÑO Y NÚMERO DE LIBRERÍA) ---
+// --- CITAS (COLORES PASTEL POR AÑO, NÚMERO DE LIBRERÍA, EDICIÓN Y BORRADO) ---
 const mapaColoresAnio = {
     2026: "#b5e3fd", // Azul pastel
     2025: "#ffd1dc", // Rosa pastel
@@ -426,10 +435,7 @@ const mapaColoresAnio = {
 function mostrarCitas() {
     const contenido = document.getElementById("contenido");
 
-    // Estadísticas de Citas
     const totalCitas = citas.length;
-
-    // Autor con más citas
     const autorMap = {};
     const libroMap = {};
     const anioMap = {};
@@ -454,7 +460,7 @@ function mostrarCitas() {
         contenido.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                 <h2 style="font-size:24px; font-weight:bold;">CITAS</h2>
-                <button onclick="mostrarFormularioCita()" class="boton-volver" style="margin:0;">+ Nueva cita</button>
+                <button onclick="mostrarFormularioCita()" class="boton-volver" style="background:#5b9bd5; color:white; margin:0;">+ Nueva Cita</button>
             </div>
             <p style="text-align:center; color:#666; margin-top:40px;">No tienes citas guardadas todavía.</p>
         `;
@@ -474,6 +480,10 @@ function mostrarCitas() {
                     <div class="cita-meta-fila">PÁGINA: <span>${c.pagina || '---'}</span></div>
                     <div class="cita-meta-fila">AÑO: <span>${c.anio || '---'}</span></div>
                     <div class="cita-meta-fila">FECHA: <span>${c.fecha || '---'}</span></div>
+                    <div style="margin-top:10px; display:flex; gap:6px;">
+                        <button onclick="editarCita(${c.id})" class="btn-tabla-accion" style="background:#fef08a; padding:4px 8px; border-radius:4px;">✏️ Editar</button>
+                        <button onclick="eliminarCita(${c.id})" class="btn-tabla-accion" style="background:#f87171; color:white; padding:4px 8px; border-radius:4px;">🗑️ Borrar</button>
+                    </div>
                 </div>
                 <div class="cita-caja-texto" style="background-color: ${colorFondo};">
                     <div class="cita-badge-numero">${numLibreria}</div>
@@ -489,7 +499,6 @@ function mostrarCitas() {
             <button onclick="mostrarFormularioCita()" class="boton-volver" style="background:#5b9bd5; color:white; margin:0;">+ Nueva Cita</button>
         </div>
 
-        <!-- Panel de Estadísticas de Citas -->
         <div class="panel-destacados-grid" style="margin-bottom:25px;">
             <div class="card-destacado"><span>Total Citas</span><strong>${totalCitas}</strong></div>
             <div class="card-destacado"><span>Autora Top</span><strong>${topAutor}</strong></div>
@@ -534,6 +543,50 @@ function mostrarFormularioCita() {
     });
 }
 
+function editarCita(id) {
+    const c = citas.find(item => item.id === id);
+    if (!c) return;
+
+    document.getElementById("contenido").innerHTML = `
+        <button onclick="mostrarCitas()" class="boton-volver">← Cancelar</button>
+        <h2>✏️ Editar Cita</h2>
+        <form id="form-edit-cita" class="formulario-libro">
+            <label>Cita / Fragmento</label><textarea id="t-cita" rows="5" required>${c.texto || ''}</textarea>
+            <label>Libro</label><input type="text" id="l-cita" value="${c.libro || ''}" required>
+            <label>Autor/a</label><input type="text" id="a-cita" value="${c.autor || ''}">
+            <label>Capítulo</label><input type="text" id="c-cita" value="${c.capitulo || ''}">
+            <label>Página</label><input type="text" id="p-cita" value="${c.pagina || ''}">
+            <label>Año</label><input type="number" id="an-cita" value="${c.anio || 2026}">
+            <label>Fecha de Registro</label><input type="text" id="f-cita" value="${c.fecha || ''}">
+            <button type="submit" style="margin-top:10px;">Guardar Cambios</button>
+        </form>
+    `;
+
+    document.getElementById("form-edit-cita").addEventListener("submit", (e) => {
+        e.preventDefault();
+        c.texto = document.getElementById("t-cita").value;
+        c.libro = document.getElementById("l-cita").value;
+        c.autor = document.getElementById("a-cita").value;
+        c.capitulo = document.getElementById("c-cita").value;
+        c.pagina = document.getElementById("p-cita").value;
+        c.anio = Number(document.getElementById("an-cita").value) || 2026;
+        c.fecha = document.getElementById("f-cita").value;
+
+        guardarEnLocalStorage();
+        alert("¡Cita actualizada correctamente!");
+        mostrarCitas();
+    });
+}
+
+function eliminarCita(id) {
+    const c = citas.find(item => item.id === id);
+    if (c && confirm(`¿Estás segura de eliminar esta cita de "${c.libro || 'este libro'}"?`)) {
+        citas = citas.filter(item => item.id !== id);
+        guardarEnLocalStorage();
+        mostrarCitas();
+    }
+}
+
 // --- AUTORES ---
 function mostrarAutores() {
     const contenido = document.getElementById("contenido");
@@ -570,7 +623,7 @@ function mostrarRegistro(anio = 2026) {
 
     let filasTabla = terminadosList.map((l, i) => {
         const dias = calcularDiasLectura(l.inicio, l.final);
-        const idiomaClase = (l.idioma || "Español").toLowerCase() === "inglés" || (l.idioma || "Español").toLowerCase() === "ingles" ? "ingles" : "espanol";
+        const idiomaClase = (l.idioma || "Español").toLowerCase().includes("ing") ? "ingles" : "espanol";
 
         return `
             <tr>
@@ -612,7 +665,95 @@ function mostrarRegistro(anio = 2026) {
     `;
 }
 
-// --- NUEVA PESTAÑA DE ESTADÍSTICAS COMPLETA ---
+// --- IMPORTACIÓN CSV ADAPTADA A TU EXCEL ---
+function importarDesdeCSV(event) {
+    const archivo = event.target.files[0];
+    if (!archivo) return;
+
+    const lector = new FileReader();
+    lector.onload = function(e) {
+        const contenidoTexto = e.target.result;
+        const lineas = contenidoTexto.split("\n");
+        let importadosCount = 0;
+
+        for (let i = 1; i < lineas.length; i++) {
+            const linea = lineas[i].trim();
+            if (!linea) continue;
+
+            const c = linea.split(",");
+            if (c.length >= 2) {
+                const titulo = c[0] ? c[0].replace(/"/g, "").trim() : "Sin título";
+                const autor = c[1] ? c[1].replace(/"/g, "").trim() : "Desconocido";
+                const paginas = Number(c[2]) || 0;
+                const inicio = c[3] ? c[3].replace(/"/g, "").trim() : "";
+                const final = c[4] ? c[4].replace(/"/g, "").trim() : "";
+                const estado = c[5] ? c[5].replace(/"/g, "").trim() : "Terminado";
+                
+                const ratingBruto = c[6] ? c[6].replace(/"/g, "").trim() : "5";
+                let ratingNum = 5;
+                if (!isNaN(ratingBruto)) ratingNum = Number(ratingBruto) || 5;
+                else ratingNum = (ratingBruto.match(/★/g) || []).length || 5;
+
+                const personaje1 = c[7] ? c[7].replace(/"/g, "").trim() : "";
+                const personaje2 = c[8] ? c[8].replace(/"/g, "").trim() : "";
+                const personajes = [personaje1, personaje2].filter(p => p).join(", ");
+                
+                const idioma = c[10] ? c[10].replace(/"/g, "").trim() : "Español";
+                const saga = c[12] ? c[12].replace(/"/g, "").trim() : "Autoconclusivo";
+                
+                const ultimaColumnaIdx = c.length - 1;
+                const portadaRaw = c[ultimaColumnaIdx] ? c[ultimaColumnaIdx].replace(/"/g, "").trim() : "images/libro-default.jpg";
+                const portada = portadaRaw.includes(".") ? portadaRaw : "images/libro-default.jpg";
+
+                let anioLibro = 2026;
+                if (final && final.includes('/')) {
+                    const partesFecha = final.split('/');
+                    if (partesFecha.length === 3 && partesFecha[2].length === 4) {
+                        anioLibro = Number(partesFecha[2]) || 2026;
+                    }
+                }
+
+                let mesLibro = "enero";
+                if (final && final.includes('/')) {
+                    const mesNum = Number(final.split('/')[1]);
+                    const mesesArr = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+                    if (mesNum >= 1 && mesNum <= 12) mesLibro = mesesArr[mesNum - 1];
+                }
+
+                const nuevoLibro = {
+                    id: Date.now() + i,
+                    numero: libros.length + 1,
+                    titulo: titulo,
+                    autor: autor,
+                    paginas: paginas,
+                    inicio: inicio,
+                    final: final,
+                    estado: estado,
+                    rating: ratingNum,
+                    personajes: personajes,
+                    idioma: idioma,
+                    saga: saga,
+                    anio: anioLibro,
+                    mes: mesLibro,
+                    portada: portada,
+                    sinopsis: "",
+                    tropes: [],
+                    esFavoritoMes: false
+                };
+
+                libros.push(nuevoLibro);
+                importadosCount++;
+            }
+        }
+
+        guardarEnLocalStorage();
+        alert(`¡Se han importado ${importadosCount} libros exitosamente desde tu CSV!`);
+        mostrarRegistro(anioSeleccionado);
+    };
+    lector.readAsText(archivo);
+}
+
+// --- PESTAÑA DE ESTADÍSTICAS COMPLETA ---
 function mostrarEstadisticas(anio = 2026) {
     anioSeleccionado = anio;
     const contenido = document.getElementById("contenido");
@@ -623,23 +764,19 @@ function mostrarEstadisticas(anio = 2026) {
     const terminadosCount = terminadosList.length;
     const proximosCount = proximosList.length;
 
-    // Mes más lector
     const mesesConteo = {};
     terminadosList.forEach(l => { const m = (l.mes || "desconocido").toLowerCase(); mesesConteo[m] = (mesesConteo[m] || 0) + 1; });
     let mesMasLector = "---"; let maxMes = 0;
     for (let m in mesesConteo) { if (mesesConteo[m] > maxMes) { maxMes = mesesConteo[m]; mesMasLector = m; } }
 
-    // Libro más largo
     let libroMasLargoObj = terminadosList.reduce((max, l) => (Number(l.paginas) || 0) > (Number(max.paginas) || 0) ? l : max, { paginas: 0 });
     let libroMasLargoTxt = libroMasLargoObj.titulo ? `${libroMasLargoObj.titulo} (${libroMasLargoObj.paginas} págs)` : "---";
 
-    // Autora más leída
     const autoresConteo = {};
     terminadosList.forEach(l => { if (l.autor) { const a = l.autor.trim(); autoresConteo[a] = (autoresConteo[a] || 0) + 1; } });
     let autorMasLeidoTxt = "---"; let maxAutor = 0;
     for (let a in autoresConteo) { if (autoresConteo[a] > maxAutor) { maxAutor = autoresConteo[a]; autorMasLeidoTxt = `${a} (${maxAutor} libros)`; } }
 
-    // Conteo Puntuaciones
     const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     terminadosList.forEach(l => { const r = Math.round(l.rating || 0); if (ratingCounts[r] !== undefined) ratingCounts[r]++; });
 
@@ -650,11 +787,9 @@ function mostrarEstadisticas(anio = 2026) {
         graficaRatingRows += `<div class="grafica-fila"><div class="grafica-label">${r} ★</div><div class="grafica-bar-bg"><div class="grafica-bar-fill" style="width: ${pct}%; background:#f39c12;"></div></div><div class="grafica-val">${cant}</div></div>`;
     }
 
-    // Conteo Idioma (Español vs Inglés) para Terminados
     let termEsp = terminadosList.filter(l => (l.idioma || "Español").toLowerCase().includes("espa")).length;
     let termIng = terminadosList.filter(l => (l.idioma || "Español").toLowerCase().includes("ing")).length;
 
-    // Conteo Idioma para Próximos
     let proxEsp = proximosList.filter(l => (l.idioma || "Español").toLowerCase().includes("espa")).length;
     let proxIng = proximosList.filter(l => (l.idioma || "Español").toLowerCase().includes("ing")).length;
 
@@ -663,7 +798,6 @@ function mostrarEstadisticas(anio = 2026) {
     const pctProxEsp = proximosCount > 0 ? (proxEsp / proximosCount) * 100 : 0;
     const pctProxIng = proximosCount > 0 ? (proxIng / proximosCount) * 100 : 0;
 
-    // Tabla comparativa multiaño
     const mesesLista = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
     let filasComparativaMeses = mesesLista.map(m => {
         const c2024 = libros.filter(l => (l.estado === "Terminado" || l.estado === "Leído") && l.anio === 2024 && (l.mes || "").toLowerCase() === m).length;
@@ -684,13 +818,11 @@ function mostrarEstadisticas(anio = 2026) {
                 <div class="card-destacado"><span>Libro más Largo</span><strong>${libroMasLargoTxt}</strong></div>
             </div>
 
-            <!-- Gráfica Puntuaciones -->
             <div class="grafica-contenedor">
                 <h4>📊 Distribución de Puntuaciones (Libros Terminados)</h4>
                 <div class="grafica-barras">${graficaRatingRows}</div>
             </div>
 
-            <!-- Gráfica Idioma Español vs Inglés -->
             <div class="grafica-contenedor">
                 <h4>🌍 Idioma de Lectura (Español vs Inglés)</h4>
                 <div style="font-weight:bold; font-size:12px; margin-bottom:6px;">Libros Terminados (${terminadosCount}):</div>
@@ -722,7 +854,6 @@ function mostrarEstadisticas(anio = 2026) {
                 </div>
             </div>
 
-            <!-- Comparativa Multiaño -->
             <h4 style="text-align:center; margin-bottom:8px; font-size:14px;">📅 Comparativa de Libros Leídos por Mes</h4>
             <div style="overflow-x:auto;">
                 <table class="tabla-comparativa-meses">
@@ -732,43 +863,6 @@ function mostrarEstadisticas(anio = 2026) {
             </div>
         </div>
     `;
-}
-
-function importarDesdeCSV(event) {
-    const archivo = event.target.files[0];
-    if (!archivo) return;
-    const lector = new FileReader();
-    lector.onload = function(e) {
-        const contenidoTexto = e.target.result;
-        const lineas = contenidoTexto.split("\n");
-        let importadosCount = 0;
-        for (let i = 1; i < lineas.length; i++) {
-            const linea = lineas[i].trim();
-            if (!linea) continue;
-            const columnas = linea.split(",");
-            if (columnas.length >= 2) {
-                libros.push({
-                    id: Date.now() + i,
-                    numero: libros.length + 1,
-                    titulo: columnas[0] ? columnas[0].replace(/"/g, "").trim() : "Sin título",
-                    autor: columnas[1] ? columnas[1].replace(/"/g, "").trim() : "Desconocido",
-                    paginas: Number(columnas[2]) || 0,
-                    anio: Number(columnas[3]) || 2026,
-                    mes: columnas[4] ? columnas[4].replace(/"/g, "").trim().toLowerCase() : "enero",
-                    estado: columnas[5] ? columnas[5].replace(/"/g, "").trim() : "Terminado",
-                    rating: Number(columnas[6]) || 5,
-                    portada: columnas[7] ? columnas[7].replace(/"/g, "").trim() : "images/libro-default.jpg",
-                    idioma: columnas[8] ? columnas[8].replace(/"/g, "").trim() : "Español",
-                    sinopsis: "", tropes: [], esFavoritoMes: false
-                });
-                importadosCount++;
-            }
-        }
-        guardarEnLocalStorage();
-        alert(`¡Se han importado ${importadosCount} libros!`);
-        mostrarRegistro(anioSeleccionado);
-    };
-    lector.readAsText(archivo);
 }
 
 function editarLibro(id) {
@@ -875,7 +969,7 @@ function mostrarFormularioNuevoLibro(estadoPredeterminado = "Terminado") {
     });
 }
 
-// --- ADAPTACIONES (CON BADGE DE NÚMERO DE LIBRERÍA) ---
+// --- ADAPTACIONES (ESTRELLAS GRANDES, BADGES FLOTANTES) ---
 function mostrarAdaptaciones() {
     const contenido = document.getElementById("contenido");
     if (adaptaciones.length === 0) {
@@ -914,17 +1008,16 @@ function mostrarAdaptaciones() {
 }
 
 function verDetalleAdaptacion(id) {
-    const ad = adaptaciones.find(item => item.id === id);
-    if (!ad) return;
+    const indexAd = adaptaciones.findIndex(item => item.id === id);
+    if (indexAd === -1) return;
+    const ad = adaptaciones[indexAd];
+    const numAdaptacion = indexAd + 1;
 
     const libInactivo = !ad.ratingLibro || Number(ad.ratingLibro) === 0;
     const pelInactivo = !ad.ratingPelicula || Number(ad.ratingPelicula) === 0;
 
-    const estrellasLibroHtml = generarEstrellas(libInactivo ? 0 : ad.ratingLibro, libInactivo);
-    const estrellasPeliHtml = generarEstrellas(pelInactivo ? 0 : ad.ratingPelicula, pelInactivo);
-
-    const txtLibro = libInactivo ? '<span style="color:#e53e3e; font-weight:bold;">No leído</span>' : `Puntaje: ${ad.ratingLibro}★`;
-    const txtPeli = pelInactivo ? '<span style="color:#e53e3e; font-weight:bold;">No visto</span>' : `Puntaje: ${ad.ratingPelicula}★`;
+    const estrellasLibroHtml = generarEstrellasGrandes(libInactivo ? 0 : ad.ratingLibro, libInactivo);
+    const estrellasPeliHtml = generarEstrellasGrandes(pelInactivo ? 0 : ad.ratingPelicula, pelInactivo);
 
     const numLibreria = obtenerNumeroLibroEnLibreria(ad.nombreLibro || ad.titulo);
 
@@ -940,30 +1033,35 @@ function verDetalleAdaptacion(id) {
             <div class="adaptacion-card-detalle">
                 <h2 style="text-align:center; margin-bottom:20px;">${ad.titulo}</h2>
                 <div class="adaptacion-grid-comparativa">
+                    
                     <div class="adaptacion-columna-media">
-                        <img src="${ad.posterPelicula || 'images/libro-default.jpg'}" class="adaptacion-poster" onerror="this.src='images/libro-default.jpg'">
-                        <div>${estrellasPeliHtml}</div>
-                        <div style="font-size:12px; margin-top:4px;">${txtPeli}</div>
+                        <div style="position:relative;">
+                            <span class="badge-numero">${numAdaptacion}</span>
+                            <img src="${ad.posterPelicula || 'images/libro-default.jpg'}" class="adaptacion-poster" onerror="this.src='images/libro-default.jpg'">
+                        </div>
+                        <div style="margin-top:6px;">${estrellasPeliHtml}</div>
                         <div class="adaptacion-info-detalles">
                             <div class="adaptacion-info-fila">PELÍCULA / SERIE: <span>${ad.nombrePelicula || ad.titulo}</span></div>
                             <div class="adaptacion-info-fila">AÑO: <span>${ad.anioPelicula || '---'}</span></div>
                             <div class="adaptacion-info-fila">PLATAFORMA: <span>${ad.plataforma || '---'}</span></div>
                         </div>
                     </div>
+
                     <div class="adaptacion-divisor-vertical"></div>
+
                     <div class="adaptacion-columna-media">
                         <div style="position:relative;">
                             <span class="badge-numero">${numLibreria}</span>
                             <img src="${ad.portadaLibro || 'images/libro-default.jpg'}" class="adaptacion-poster" onerror="this.src='images/libro-default.jpg'">
                         </div>
-                        <div>${estrellasLibroHtml}</div>
-                        <div style="font-size:12px; margin-top:4px;">${txtLibro}</div>
+                        <div style="margin-top:6px;">${estrellasLibroHtml}</div>
                         <div class="adaptacion-info-detalles">
                             <div class="adaptacion-info-fila">LIBRO: <span>${ad.nombreLibro || ad.titulo}</span></div>
                             <div class="adaptacion-info-fila">AUTOR/A: <span>${ad.autor || '---'}</span></div>
                             <div class="adaptacion-info-fila">AÑO: <span>${ad.anioLibro || '---'}</span></div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>

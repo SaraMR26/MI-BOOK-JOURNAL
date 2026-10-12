@@ -170,6 +170,7 @@ body {
     align-items: center;
     justify-content: center;
     box-shadow: 1px 2px 4px rgba(0,0,0,0.2);
+    z-index: 5;
 }
 
 .estrellas {
@@ -274,7 +275,7 @@ body {
 .autor-btn-item { background-color: #3b82f6; color: white; border: none; padding: 12px 14px; border-radius: 8px; font-family: Georgia, serif; font-size: 13px; font-style: italic; font-weight: bold; cursor: pointer; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: filter 0.2s, transform 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .autor-btn-item:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
-/* ADAPTACIONES CON BADGE DE LIBRERÍA */
+/* ADAPTACIONES CON BADGE DE LIBRERÍA Y PELÍCULA */
 .adaptacion-card-detalle { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); max-width: 800px; margin: 15px auto; position: relative; }
 .adaptacion-grid-comparativa { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .adaptacion-columna-media { display: flex; flex-direction: column; align-items: center; text-align: center; width: 42%; position: relative; }
