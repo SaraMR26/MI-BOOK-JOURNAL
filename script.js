@@ -99,7 +99,7 @@ function mostrarPagina(pagina) {
     else if (pagina === "recap") mostrarRecapPorAnio();
 }
 
-// --- LIBRERÍA (TERMINADOS + PRÓXIMOS) ---
+// --- LIBRERÍA ---
 function mostrarLibreria() {
     const contenido = document.getElementById("contenido");
     if (libros.length === 0) {
@@ -117,7 +117,7 @@ function mostrarLibreria() {
             <div class="tarjeta-libro" onclick="verResenaLibro(${l.id})">
                 <div class="contenedor-portada">
                     <span class="badge-numero">${num}</span>
-                    <img src="${l.portada}" onerror="this.src='images/libro-default.jpg'">
+                    <img src="${l.portada}" onerror="this.src='imagenes/libro-default.jpg'">
                 </div>
                 <div class="estrellas">${generarEstrellas(l.rating)}</div>
                 <div class="linea-subrayado ${idiomaClase}">${l.titulo}</div>
@@ -149,16 +149,16 @@ function verResenaLibro(id) {
                 <div class="columna-izquierda-resena">
                     <div class="contenedor-portada" style="width:160px; height:230px;">
                         <span class="badge-numero">${l.numero || 1}</span>
-                        <img src="${l.portada}" onerror="this.src='images/libro-default.jpg'">
+                        <img src="${l.portada}" onerror="this.src='imagenes/libro-default.jpg'">
                     </div>
                     <div class="estrellas" style="font-size:22px; margin-top:8px;">${generarEstrellas(l.rating)}</div>
                     <div class="linea-subrayado ${idiomaClase}" style="text-align:center;">${l.titulo}</div>
                     <div style="font-size:13px; text-align:center; margin-bottom:4px;">${l.autor}</div>
                     <span class="badge-idioma ${idiomaClase}">${l.idioma || 'Español'}</span>
-                    <div class="caja-notas" style="margin-top:10px;"><h4>NOTAS:</h4><ul>${(l.tropes || []).map(t=>`<li>${t}</li>`).join('') || '<li>Sin notas</li>'}</ul></div>
+                    <div class="caja-notas" style="margin-top:10px;"><h4>NOTAS / TROPES:</h4><ul>${(l.tropes || []).map(t=>`<li>${t}</li>`).join('') || '<li>Sin notas</li>'}</ul></div>
                 </div>
                 <div class="columna-derecha-resena">
-                    <div class="texto-sinopsis">${l.sinopsis || "Sin sinopsis."}</div>
+                    <div class="texto-sinopsis">${l.sinopsis || "Sin sinopsis disponible."}</div>
                     <div class="metadatos-inferior">
                         <div class="metadatos-row"><span>IDIOMA: <b>${l.idioma || 'Español'}</b></span><span>ESTADO: <b>${l.estado}</b></span></div>
                         <div class="metadatos-row"><span>PÁGINAS: ${l.paginas||'---'}</span><span>SAGA: ${l.saga||'Autoconclusivo'}</span></div>
@@ -185,7 +185,7 @@ function mostrarProximos() {
                 <div class="tarjeta-libro" style="cursor:default;">
                     <div class="contenedor-portada">
                         <span class="badge-numero">${l.numero || '#'}</span>
-                        <img src="${l.portada}" onerror="this.src='images/libro-default.jpg'">
+                        <img src="${l.portada}" onerror="this.src='imagenes/libro-default.jpg'">
                     </div>
                     <div class="linea-subrayado ${idiomaClase}">${l.titulo}</div>
                     <div style="font-size:13px; color:#555; margin-bottom:4px;">${l.autor}</div>
@@ -259,9 +259,11 @@ function toggleMeta(id) {
     const m = metas.find(item => item.id === id);
     if (m) { m.completada = !m.completada; guardarEnLocalStorage(); mostrarMetas(); }
 }
+
 function eliminarMeta(id) {
     if (confirm("¿Borrar esta meta?")) { metas = metas.filter(item => item.id !== id); guardarEnLocalStorage(); mostrarMetas(); }
 }
+
 function mostrarFormularioMeta() {
     document.getElementById("contenido").innerHTML = `
         <button onclick="mostrarMetas()" class="boton-volver">← Volver</button>
@@ -340,7 +342,7 @@ function mostrarDetalleRecapMes(mes, anio) {
 
     let top3Html = top3.map(l => `
         <div class="recap-top3-card">
-            <img src="${l.portada}" onerror="this.src='images/libro-default.jpg'">
+            <img src="${l.portada}" onerror="this.src='imagenes/libro-default.jpg'">
             <strong>${l.titulo}</strong>
             <div class="estrellas">${generarEstrellas(l.rating)}</div>
         </div>
@@ -422,7 +424,7 @@ function registrarPaginasDia(k, d, m) {
     mostrarTracker(anioSeleccionado);
 }
 
-// --- CITAS (COLORES PASTEL POR AÑO, NÚMERO DE LIBRERÍA, EDICIÓN Y BORRADO) ---
+// --- CITAS ---
 const mapaColoresAnio = {
     2026: "#b5e3fd",
     2025: "#ffd1dc",
@@ -456,11 +458,20 @@ function mostrarCitas() {
     const topLibro = obtenerTop(libroMap);
     const topAnio = obtenerTop(anioMap);
 
+    const botonesAccionCitas = `
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button onclick="mostrarFormularioCita()" class="boton-volver" style="background:#5b9bd5; color:white; margin:0;">+ Nueva Cita</button>
+            <input type="file" id="input-csv-citas" accept=".csv" style="display:none" onchange="importarCitasCSV(event)">
+            <button onclick="document.getElementById('input-csv-citas').click()" class="boton-volver" style="background:#48bb78; color:white; margin:0;">📂 CSV</button>
+            <button onclick="vaciarCitas()" class="boton-volver" style="background:#f87171; color:white; margin:0;">🗑️ Vaciar</button>
+        </div>
+    `;
+
     if (citas.length === 0) {
         contenido.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
                 <h2 style="font-size:24px; font-weight:bold;">CITAS</h2>
-                <button onclick="mostrarFormularioCita()" class="boton-volver" style="background:#5b9bd5; color:white; margin:0;">+ Nueva Cita</button>
+                ${botonesAccionCitas}
             </div>
             <p style="text-align:center; color:#666; margin-top:40px;">No tienes citas guardadas todavía.</p>
         `;
@@ -494,9 +505,9 @@ function mostrarCitas() {
     }).join('');
 
     contenido.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h2 style="font-size:24px; font-weight:bold;">CITAS DE LECTURA</h2>
-            <button onclick="mostrarFormularioCita()" class="boton-volver" style="background:#5b9bd5; color:white; margin:0;">+ Nueva Cita</button>
+            ${botonesAccionCitas}
         </div>
 
         <div class="panel-destacados-grid" style="margin-bottom:25px;">
@@ -587,6 +598,46 @@ function eliminarCita(id) {
     }
 }
 
+function importarCitasCSV(event) {
+    const archivo = event.target.files[0];
+    if (!archivo) return;
+    const lector = new FileReader();
+    lector.onload = function(e) {
+        const lineas = e.target.result.split("\n");
+        let count = 0;
+        for (let i = 1; i < lineas.length; i++) {
+            const linea = lineas[i].trim();
+            if (!linea) continue;
+            const c = linea.split(",").map(val => val.replace(/^"|"$/g, "").trim());
+            if (c.length >= 2) {
+                citas.push({
+                    id: Date.now() + i,
+                    texto: c[0] || "",
+                    libro: c[1] || "",
+                    autor: c[2] || "",
+                    capitulo: c[3] || "",
+                    pagina: c[4] || "",
+                    anio: Number(c[5]) || 2026,
+                    fecha: c[6] || new Date().toLocaleDateString('es-ES')
+                });
+                count++;
+            }
+        }
+        guardarEnLocalStorage();
+        alert(`¡Se importaron ${count} citas exitosamente!`);
+        mostrarCitas();
+    };
+    lector.readAsText(archivo);
+}
+
+function vaciarCitas() {
+    if (confirm("⚠️ ¿Estás segura de que deseas borrar TODAS las citas registradas?")) {
+        citas = [];
+        guardarEnLocalStorage();
+        mostrarCitas();
+    }
+}
+
 // --- AUTORES ---
 function mostrarAutores() {
     const contenido = document.getElementById("contenido");
@@ -606,7 +657,7 @@ function mostrarLibrosDeAutor(nombreAutor) {
     const librosAutor = libros.filter(l => l.autor && l.autor.trim().toLowerCase() === nombreAutor.toLowerCase());
     let tarjetas = librosAutor.map((l, i) => `
         <div class="tarjeta-libro" onclick="verResenaLibro(${l.id})">
-            <div class="contenedor-portada"><span class="badge-numero">${l.numero || i+1}</span><img src="${l.portada}" onerror="this.src='images/libro-default.jpg'"></div>
+            <div class="contenedor-portada"><span class="badge-numero">${l.numero || i+1}</span><img src="${l.portada}" onerror="this.src='imagenes/libro-default.jpg'"></div>
             <div class="estrellas">${generarEstrellas(l.rating)}</div>
             <div class="linea-subrayado">${l.titulo}</div>
         </div>
@@ -614,7 +665,7 @@ function mostrarLibrosDeAutor(nombreAutor) {
     contenido.innerHTML = `<div><button onclick="mostrarAutores()" class="boton-volver">← Volver</button><h2 style="text-align:center; margin-bottom:20px;">${nombreAutor}</h2><div class="lista-libros">${tarjetas}</div></div>`;
 }
 
-// --- REGISTRO DE LECTURAS (SIN IDIOMA Y SIN COLUMNA #) ---
+// --- REGISTRO DE LECTURAS ---
 function mostrarRegistro(anio = 2026) {
     anioSeleccionado = anio;
     const contenido = document.getElementById("contenido");
@@ -674,7 +725,7 @@ function mostrarRegistro(anio = 2026) {
     `;
 }
 
-// --- IMPORTACIÓN CSV ADAPTADA AL ORDEN DE TUS ENCABEZADOS ---
+// --- IMPORTACIÓN CSV DE LIBROS (SINOPSIS Y TROPES) ---
 function importarDesdeCSV(event) {
     const archivo = event.target.files[0];
     if (!archivo) return;
@@ -689,30 +740,33 @@ function importarDesdeCSV(event) {
             const linea = lineas[i].trim();
             if (!linea) continue;
 
-            const c = linea.split(",");
+            const c = linea.split(",").map(val => val.replace(/^"|"$/g, "").trim());
             if (c.length >= 2) {
-                const titulo = c[0] ? c[0].replace(/"/g, "").trim() : "Sin título";
-                const autor = c[1] ? c[1].replace(/"/g, "").trim() : "Desconocido";
+                const titulo = c[0] || "Sin título";
+                const autor = c[1] || "Desconocido";
                 const paginas = Number(c[2]) || 0;
-                const inicio = c[3] ? c[3].replace(/"/g, "").trim() : "";
-                const final = c[4] ? c[4].replace(/"/g, "").trim() : "";
-                const estado = c[5] ? c[5].replace(/"/g, "").trim() : "Terminado";
+                const inicio = c[3] || "";
+                const final = c[4] || "";
+                const estado = c[5] || "Terminado";
                 
-                const ratingBruto = c[6] ? c[6].replace(/"/g, "").trim() : "5";
+                const ratingBruto = c[6] || "5";
                 let ratingNum = 5;
                 if (!isNaN(ratingBruto)) ratingNum = Number(ratingBruto) || 5;
                 else ratingNum = (ratingBruto.match(/★/g) || []).length || 5;
 
-                const personaje1 = c[7] ? c[7].replace(/"/g, "").trim() : "";
-                const personaje2 = c[8] ? c[8].replace(/"/g, "").trim() : "";
+                const personaje1 = c[7] || "";
+                const personaje2 = c[8] || "";
                 const personajes = [personaje1, personaje2].filter(p => p).join(", ");
                 
-                const idioma = c[10] ? c[10].replace(/"/g, "").trim() : "Español";
-                const saga = c[12] ? c[12].replace(/"/g, "").trim() : "Autoconclusivo";
+                const idioma = c[10] || "Español";
+                const saga = c[12] || "Autoconclusivo";
                 
-                const ultimaColumnaIdx = c.length - 1;
-                const portadaRaw = c[ultimaColumnaIdx] ? c[ultimaColumnaIdx].replace(/"/g, "").trim() : "images/libro-default.jpg";
-                const portada = portadaRaw.includes(".") ? portadaRaw : "images/libro-default.jpg";
+                const portadaRaw = c[13] || "imagenes/libro-default.jpg";
+                const portada = portadaRaw.includes(".") ? portadaRaw : "imagenes/libro-default.jpg";
+
+                const sinopsis = c[14] || "";
+                const tropesRaw = c[15] || "";
+                const tropes = tropesRaw ? tropesRaw.split(/[-;,]/).map(t => t.trim()).filter(t => t) : [];
 
                 let anioLibro = 2026;
                 if (final && final.includes('/')) {
@@ -745,8 +799,8 @@ function importarDesdeCSV(event) {
                     anio: anioLibro,
                     mes: mesLibro,
                     portada: portada,
-                    sinopsis: "",
-                    tropes: [],
+                    sinopsis: sinopsis,
+                    tropes: tropes,
                     esFavoritoMes: false
                 };
 
@@ -762,7 +816,7 @@ function importarDesdeCSV(event) {
     lector.readAsText(archivo);
 }
 
-// --- PESTAÑA DE ESTADÍSTICAS COMPLETA ---
+// --- ESTADÍSTICAS ---
 function mostrarEstadisticas(anio = 2026) {
     anioSeleccionado = anio;
     const contenido = document.getElementById("contenido");
@@ -914,7 +968,7 @@ function editarLibro(id) {
         l.mes = document.getElementById("reg-mes").value;
         l.estado = document.getElementById("reg-estado").value;
         l.rating = Number(document.getElementById("reg-rating").value);
-        l.portada = document.getElementById("reg-portada").value.trim() || "images/libro-default.jpg";
+        l.portada = document.getElementById("reg-portada").value.trim() || "imagenes/libro-default.jpg";
         guardarEnLocalStorage();
         alert("¡Actualizado!");
         mostrarRegistro(l.anio);
@@ -949,7 +1003,7 @@ function mostrarFormularioNuevoLibro(estadoPredeterminado = "Terminado") {
             <label>Sinopsis</label><textarea id="reg-sinopsis" rows="6"></textarea>
             <label>Estado</label><select id="reg-estado"><option value="Terminado">Terminado</option><option value="Próximo">Próximo</option></select>
             <label>Calificación</label><select id="reg-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select>
-            <label>Portada URL</label><input type="text" id="reg-portada" placeholder="images/portada.jpg o URL">
+            <label>Portada URL</label><input type="text" id="reg-portada" placeholder="imagenes/portada.jpg o URL">
             <button type="submit">Guardar Libro</button>
         </form>
     `;
@@ -969,7 +1023,7 @@ function mostrarFormularioNuevoLibro(estadoPredeterminado = "Terminado") {
             mes: document.getElementById("reg-mes").value,
             estado: document.getElementById("reg-estado").value,
             rating: Number(document.getElementById("reg-rating").value),
-            portada: document.getElementById("reg-portada").value.trim() || "images/libro-default.jpg",
+            portada: document.getElementById("reg-portada").value.trim() || "imagenes/libro-default.jpg",
             tropes: [], esFavoritoMes: false
         });
         guardarEnLocalStorage();
@@ -989,7 +1043,8 @@ function mostrarAdaptaciones() {
                     <div>
                         <button onclick="mostrarFormularioAdaptacion()" class="boton-volver" style="background:#5b9bd5; color:white; margin:0 5px 0 0;">+ Nueva</button>
                         <input type="file" id="input-csv-adapt" accept=".csv" style="display:none" onchange="importarAdaptacionesCSV(event)">
-                        <button onclick="document.getElementById('input-csv-adapt').click()" class="boton-volver" style="background:#48bb78; color:white; margin:0;">📂 CSV</button>
+                        <button onclick="document.getElementById('input-csv-adapt').click()" class="boton-volver" style="background:#48bb78; color:white; margin:0 5px 0 0;">📂 CSV</button>
+                        <button onclick="vaciarAdaptaciones()" class="boton-volver" style="background:#f87171; color:white; margin:0;">🗑️ Vaciar</button>
                     </div>
                 </div>
                 <div style="width:120px; height:2px; background:#4a77d4; margin:0 auto 20px auto;"></div>
@@ -1007,7 +1062,8 @@ function mostrarAdaptaciones() {
                 <div>
                     <button onclick="mostrarFormularioAdaptacion()" class="boton-volver" style="background:#5b9bd5; color:white; margin:0 5px 0 0;">+ Nueva</button>
                     <input type="file" id="input-csv-adapt" accept=".csv" style="display:none" onchange="importarAdaptacionesCSV(event)">
-                    <button onclick="document.getElementById('input-csv-adapt').click()" class="boton-volver" style="background:#48bb78; color:white; margin:0;">📂 CSV</button>
+                    <button onclick="document.getElementById('input-csv-adapt').click()" class="boton-volver" style="background:#48bb78; color:white; margin:0 5px 0 0;">📂 CSV</button>
+                    <button onclick="vaciarAdaptaciones()" class="boton-volver" style="background:#f87171; color:white; margin:0;">🗑️ Vaciar</button>
                 </div>
             </div>
             <div style="width:120px; height:2px; background:#4a77d4; margin:0 auto 20px auto;"></div>
@@ -1046,7 +1102,7 @@ function verDetalleAdaptacion(id) {
                     <div class="adaptacion-columna-media">
                         <div style="position:relative;">
                             <span class="badge-numero">${numAdaptacion}</span>
-                            <img src="${ad.posterPelicula || 'images/libro-default.jpg'}" class="adaptacion-poster" onerror="this.src='images/libro-default.jpg'">
+                            <img src="${ad.posterPelicula || 'imagenes/libro-default.jpg'}" class="adaptacion-poster" onerror="this.src='imagenes/libro-default.jpg'">
                         </div>
                         <div style="margin-top:6px;">${estrellasPeliHtml}</div>
                         <div class="adaptacion-info-detalles">
@@ -1061,7 +1117,7 @@ function verDetalleAdaptacion(id) {
                     <div class="adaptacion-columna-media">
                         <div style="position:relative;">
                             <span class="badge-numero">${numLibreria}</span>
-                            <img src="${ad.portadaLibro || 'images/libro-default.jpg'}" class="adaptacion-poster" onerror="this.src='images/libro-default.jpg'">
+                            <img src="${ad.portadaLibro || 'imagenes/libro-default.jpg'}" class="adaptacion-poster" onerror="this.src='imagenes/libro-default.jpg'">
                         </div>
                         <div style="margin-top:6px;">${estrellasLibroHtml}</div>
                         <div class="adaptacion-info-detalles">
@@ -1088,14 +1144,14 @@ function mostrarFormularioAdaptacion() {
             <label>Año Película</label><input type="number" id="ad-anip">
             <label>Plataforma</label><input type="text" id="ad-plat">
             <label>Puntuación Película (0 o vacío si no se vio)</label><input type="number" id="ad-ratp" min="0" max="5" placeholder="Ej. 5">
-            <label>URL o Ruta Póster Película</label><input type="text" id="ad-postp" placeholder="images/peli.jpg">
+            <label>URL o Ruta Póster Película</label><input type="text" id="ad-postp" placeholder="imagenes/peli.jpg">
 
             <label style="margin-top:10px;">--- DATOS DEL LIBRO ---</label>
             <label>Nombre del Libro (para vinculación con librería)</label><input type="text" id="ad-nombl">
             <label>Autor/a</label><input type="text" id="ad-autor">
             <label>Año Libro</label><input type="number" id="ad-anil">
             <label>Puntuación Libro (0 o vacío si no se leyó)</label><input type="number" id="ad-ratl" min="0" max="5" placeholder="Ej. 4">
-            <label>URL o Ruta Portada Libro</label><input type="text" id="ad-portl" placeholder="images/libro.jpg">
+            <label>URL o Ruta Portada Libro</label><input type="text" id="ad-portl" placeholder="imagenes/libro.jpg">
 
             <button type="submit" style="margin-top:15px;">Guardar Adaptación</button>
         </form>
@@ -1109,12 +1165,12 @@ function mostrarFormularioAdaptacion() {
             anioPelicula: Number(document.getElementById("ad-anip").value) || "",
             plataforma: document.getElementById("ad-plat").value,
             ratingPelicula: Number(document.getElementById("ad-ratp").value) || 0,
-            posterPelicula: document.getElementById("ad-postp").value.trim() || "images/libro-default.jpg",
+            posterPelicula: document.getElementById("ad-postp").value.trim() || "imagenes/libro-default.jpg",
             nombreLibro: document.getElementById("ad-nombl").value,
             autor: document.getElementById("ad-autor").value,
             anioLibro: Number(document.getElementById("ad-anil").value) || "",
             ratingLibro: Number(document.getElementById("ad-ratl").value) || 0,
-            portadaLibro: document.getElementById("ad-portl").value.trim() || "images/libro-default.jpg"
+            portadaLibro: document.getElementById("ad-portl").value.trim() || "imagenes/libro-default.jpg"
         });
         guardarEnLocalStorage();
         alert("¡Adaptación guardada!");
@@ -1152,12 +1208,12 @@ function editarAdaptacion(id) {
         ad.anioPelicula = Number(document.getElementById("ad-anip").value) || "";
         ad.plataforma = document.getElementById("ad-plat").value;
         ad.ratingPelicula = Number(document.getElementById("ad-ratp").value) || 0;
-        ad.posterPelicula = document.getElementById("ad-postp").value.trim() || "images/libro-default.jpg";
+        ad.posterPelicula = document.getElementById("ad-postp").value.trim() || "imagenes/libro-default.jpg";
         ad.nombreLibro = document.getElementById("ad-nombl").value;
         ad.autor = document.getElementById("ad-autor").value;
         ad.anioLibro = Number(document.getElementById("ad-anil").value) || "";
         ad.ratingLibro = Number(document.getElementById("ad-ratl").value) || 0;
-        ad.portadaLibro = document.getElementById("ad-portl").value.trim() || "images/libro-default.jpg";
+        ad.portadaLibro = document.getElementById("ad-portl").value.trim() || "imagenes/libro-default.jpg";
 
         guardarEnLocalStorage();
         alert("¡Adaptación actualizada!");
@@ -1183,12 +1239,10 @@ function importarAdaptacionesCSV(event) {
         for (let i = 1; i < lineas.length; i++) {
             const linea = lineas[i].trim();
             if (!linea) continue;
-            
-            // Separa respetando campos entre comillas
             const c = linea.split(",").map(val => val.replace(/^"|"$/g, "").trim());
             if (c.length >= 2) {
-                const posterPeli = c[5] ? c[5] : "images/libro-default.jpg";
-                const portadaLib = c[9] ? c[9] : "images/libro-default.jpg";
+                const posterPeli = c[5] ? c[5] : "imagenes/libro-default.jpg";
+                const portadaLib = c[9] ? c[9] : "imagenes/libro-default.jpg";
 
                 adaptaciones.push({
                     id: Date.now() + i,
@@ -1197,11 +1251,11 @@ function importarAdaptacionesCSV(event) {
                     anioPelicula: Number(c[2]) || "",
                     plataforma: c[3] || "",
                     ratingPelicula: Number(c[4]) || 0,
-                    posterPelicula: posterPeli.includes(".") ? posterPeli : "images/libro-default.jpg",
+                    posterPelicula: posterPeli.includes(".") ? posterPeli : "imagenes/libro-default.jpg",
                     autor: c[6] || "",
                     anioLibro: Number(c[7]) || "",
                     ratingLibro: Number(c[8]) || 0,
-                    portadaLibro: portadaLib.includes(".") ? portadaLib : "images/libro-default.jpg"
+                    portadaLibro: portadaLib.includes(".") ? portadaLib : "imagenes/libro-default.jpg"
                 });
                 count++;
             }
@@ -1213,7 +1267,14 @@ function importarAdaptacionesCSV(event) {
     lector.readAsText(archivo);
 }
 
-// Función para vaciar todos los datos registrados
+function vaciarAdaptaciones() {
+    if (confirm("⚠️ ¿Estás segura de que deseas borrar TODAS las adaptaciones registradas?")) {
+        adaptaciones = [];
+        guardarEnLocalStorage();
+        mostrarAdaptaciones();
+    }
+}
+
 function vaciarTodosLosDatos() {
     if (confirm("⚠️ ¿Estás segura de que deseas borrar TODOS los libros y datos registrados? Esta acción no se puede deshacer.")) {
         localStorage.clear();
