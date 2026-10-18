@@ -188,13 +188,8 @@ body {
     padding-bottom: 2px;
 }
 
-.linea-subrayado.espanol {
-    border-bottom: 3px solid #3182ce;
-}
-
-.linea-subrayado.ingles {
-    border-bottom: 3px solid #805ad5;
-}
+.linea-subrayado.espanol { border-bottom: 3px solid #3182ce; }
+.linea-subrayado.ingles { border-bottom: 3px solid #805ad5; }
 
 .badge-idioma {
     display: inline-block;
@@ -361,19 +356,10 @@ body {
         padding: 0;
     }
 
-    .encabezado {
-        padding: 10px;
-    }
+    .encabezado { padding: 10px; }
+    .encabezado h1 { font-size: 22px; }
+    .encabezado p { font-size: 12px; }
 
-    .encabezado h1 {
-        font-size: 22px;
-    }
-
-    .encabezado p {
-        font-size: 12px;
-    }
-
-    /* Transformación de la estructura a layout vertical */
     .journal-wrapper {
         flex-direction: column;
         margin: 0 auto;
@@ -381,7 +367,6 @@ body {
         width: 100%;
     }
 
-    /* Pestañas convertidas en barra deslizable */
     .tabs-side {
         flex-direction: row;
         width: 100%;
@@ -392,9 +377,7 @@ body {
         -webkit-overflow-scrolling: touch;
     }
 
-    .tabs-side::-webkit-scrollbar {
-        display: none;
-    }
+    .tabs-side::-webkit-scrollbar { display: none; }
 
     .tab-btn {
         writing-mode: horizontal-tb !important;
@@ -424,25 +407,15 @@ body {
         box-shadow: none;
     }
 
-    .portada-inicio {
-        min-height: 380px;
-        padding: 15px;
-    }
-
-    .portada-inicio h1 {
-        font-size: 32px;
-        padding: 8px 15px;
-    }
+    .portada-inicio { min-height: 380px; padding: 15px; }
+    .portada-inicio h1 { font-size: 32px; padding: 8px 15px; }
 
     .lista-libros {
         grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
         gap: 12px;
     }
 
-    .contenedor-portada {
-        width: 110px;
-        height: 160px;
-    }
+    .contenedor-portada { width: 110px; height: 160px; }
 
     .resena-contenido, 
     .adaptacion-grid-comparativa {
@@ -452,47 +425,17 @@ body {
     }
 
     .columna-izquierda-resena, 
-    .adaptacion-columna-media {
-        width: 100%;
-    }
+    .adaptacion-columna-media { width: 100%; }
+    .adaptacion-divisor-vertical { width: 100%; height: 2px; }
 
-    .adaptacion-divisor-vertical {
-        width: 100%;
-        height: 2px;
-    }
+    .panel-destacados-grid { grid-template-columns: repeat(2, 1fr); }
+    .grilla-favoritos-meses { grid-template-columns: repeat(2, 1fr); }
+    .autores-grid-3cols { grid-template-columns: repeat(2, 1fr); }
 
-    .panel-destacados-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .tarjeta-cita-planner { flex-direction: column; gap: 10px; }
+    .cita-metadatos { width: 100%; }
 
-    .grilla-favoritos-meses {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .autores-grid-3cols {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .tarjeta-cita-planner {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .cita-metadatos {
-        width: 100%;
-    }
-
-    .recap-top3-contenedor {
-        flex-wrap: wrap;
-    }
-
-    .tabla-registro-planner, 
-    .tabla-comparativa-meses {
-        font-size: 11px;
-    }
-
-    .tabla-registro-planner th, 
-    .tabla-registro-planner td {
-        padding: 6px 4px;
-    }
+    .recap-top3-contenedor { flex-wrap: wrap; }
+    .tabla-registro-planner, .tabla-comparativa-meses { font-size: 11px; }
+    .tabla-registro-planner th, .tabla-registro-planner td { padding: 6px 4px; }
 }

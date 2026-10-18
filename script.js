@@ -10,6 +10,8 @@ let metas = JSON.parse(localStorage.getItem("metas")) || [
 ];
 
 let anioSeleccionado = 2026;
+let paginaActualCitas = 1;
+const citasPorPagina = 10; // Citas que se muestran por página
 
 function guardarEnLocalStorage() {
     localStorage.setItem("libros", JSON.stringify(libros));
@@ -91,7 +93,7 @@ function mostrarPagina(pagina) {
     else if (pagina === "tracker") mostrarTracker();
     else if (pagina === "proximos") mostrarProximos();
     else if (pagina === "metas") mostrarMetas();
-    else if (pagina === "citas") mostrarCitas();
+    else if (pagina === "citas") { paginaActualCitas = 1; mostrarCitas(); }
     else if (pagina === "autores") mostrarAutores();
     else if (pagina === "registro") mostrarRegistro();
     else if (pagina === "estadisticas") mostrarEstadisticas();
@@ -424,14 +426,9 @@ function registrarPaginasDia(k, d, m) {
     mostrarTracker(anioSeleccionado);
 }
 
-// --- CITAS ---
+// --- CITAS (CON PAGINACIÓN Y LECTOR CSV ROBUSTO) ---
 const mapaColoresAnio = {
-    2026: "#b5e3fd",
-    2025: "#ffd1dc",
-    2024: "#e2f0cb",
-    2023: "#d8b4f8",
-    2022: "#ffffba",
-    2021: "#ffdfba"
+    2026: "#b5e3fd", 2025: "#ffd1dc", 2024: "#e2f0cb", 2023: "#d8b4f8", 2022: "#ffffba", 2021: "#ffdfba"
 };
 
 function mostrarCitas() {
@@ -478,7 +475,16 @@ function mostrarCitas() {
         return;
     }
 
-    let htmlCitas = citas.map(c => {
+    // Paginación de citas
+    const totalPaginas = Math.ceil(citas.length / citasPorPagina);
+    if (paginaActualCitas > totalPaginas) paginaActualCitas = totalPaginas;
+    if (paginaActualCitas < 1) paginaActualCitas = 1;
+
+    const inicioSlice = (paginaActualCitas - 1) * citasPorPagina;
+    const finSlice = inicioSlice + citasPorPagina;
+    const citasPaginadas = citas.slice(inicioSlice, finSlice);
+
+    let htmlCitas = citasPaginadas.map(c => {
         const colorFondo = mapaColoresAnio[c.anio] || "#b5e3fd";
         const numLibreria = obtenerNumeroLibroEnLibreria(c.libro);
 
@@ -504,6 +510,16 @@ function mostrarCitas() {
         `;
     }).join('');
 
+    // Generar botones de paginación
+    let botonesPaginacion = "";
+    if (totalPaginas > 1) {
+        botonesPaginacion = `<div class="selector-anio" style="margin-top:25px;">`;
+        for (let p = 1; p <= totalPaginas; p++) {
+            botonesPaginacion += `<button class="btn-anio ${paginaActualCitas === p ? 'activo' : ''}" onclick="cambiarPaginaCitas(${p})">${p}</button>`;
+        }
+        botonesPaginacion += `</div>`;
+    }
+
     contenido.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
             <h2 style="font-size:24px; font-weight:bold;">CITAS DE LECTURA</h2>
@@ -518,7 +534,87 @@ function mostrarCitas() {
         </div>
 
         <div class="contenedor-citas-planner">${htmlCitas}</div>
+        ${botonesPaginacion}
     `;
+}
+
+function cambiarPaginaCitas(numPag) {
+    paginaActualCitas = numPag;
+    mostrarCitas();
+    const contenidoEl = document.getElementById("contenido");
+    if (contenidoEl) contenidoEl.scrollTop = 0;
+}
+
+function importarCitasCSV(event) {
+    const archivo = event.target.files[0];
+    if (!archivo) return;
+    const lector = new FileReader();
+    lector.onload = function(e) {
+        const textoCompleto = e.target.result;
+        
+        // Parser robusto compatible con saltos de línea dentro de comillas
+        const filas = [];
+        let filaActual = [];
+        let campoActual = "";
+        let dentroDeComillas = false;
+
+        for (let i = 0; i < textoCompleto.length; i++) {
+            const char = textoCompleto[i];
+            const siguienteChar = textoCompleto[i + 1];
+
+            if (char === '"') {
+                if (dentroDeComillas && siguienteChar === '"') {
+                    campoActual += '"';
+                    i++;
+                } else {
+                    dentroDeComillas = !dentroDeComillas;
+                }
+            } else if (char === ',' && !dentroDeComillas) {
+                filaActual.push(campoActual.trim());
+                campoActual = "";
+            } else if ((char === '\r' || char === '\n') && !dentroDeComillas) {
+                if (char === '\r' && siguienteChar === '\n') { i++; }
+                filaActual.push(campoActual.trim());
+                if (filaActual.length > 1 || filaActual[0] !== "") {
+                    filas.push(filaActual);
+                }
+                filaActual = [];
+                campoActual = "";
+            } else {
+                campoActual += char;
+            }
+        }
+        if (campoActual !== "" || filaActual.length > 0) {
+            filaActual.push(campoActual.trim());
+            filas.push(filaActual);
+        }
+
+        let count = 0;
+        const inicioIndex = filas.length > 0 && filas[0][0].toLowerCase().includes("texto") ? 1 : 0;
+
+        for (let i = inicioIndex; i < filas.length; i++) {
+            const c = filas[i];
+            if (c.length >= 2 && c[0]) {
+                citas.push({
+                    id: Date.now() + i,
+                    texto: c[0].replace(/^"|"$/g, ""),
+                    libro: c[1] || "",
+                    autor: c[2] || "",
+                    capitulo: c[3] || "",
+                    pagina: c[4] || "",
+                    anio: Number(c[5]) || 2026,
+                    fecha: c[6] || new Date().toLocaleDateString('es-ES')
+                });
+                count++;
+            }
+        }
+
+        guardarEnLocalStorage();
+        alert(`¡Se importaron ${count} citas perfectamente sin errores de estructura!`);
+        paginaActualCitas = 1;
+        mostrarCitas();
+    };
+    lector.readAsText(archivo);
 }
 
 function mostrarFormularioCita() {
@@ -598,38 +694,6 @@ function eliminarCita(id) {
     }
 }
 
-function importarCitasCSV(event) {
-    const archivo = event.target.files[0];
-    if (!archivo) return;
-    const lector = new FileReader();
-    lector.onload = function(e) {
-        const lineas = e.target.result.split("\n");
-        let count = 0;
-        for (let i = 1; i < lineas.length; i++) {
-            const linea = lineas[i].trim();
-            if (!linea) continue;
-            const c = linea.split(",").map(val => val.replace(/^"|"$/g, "").trim());
-            if (c.length >= 2) {
-                citas.push({
-                    id: Date.now() + i,
-                    texto: c[0] || "",
-                    libro: c[1] || "",
-                    autor: c[2] || "",
-                    capitulo: c[3] || "",
-                    pagina: c[4] || "",
-                    anio: Number(c[5]) || 2026,
-                    fecha: c[6] || new Date().toLocaleDateString('es-ES')
-                });
-                count++;
-            }
-        }
-        guardarEnLocalStorage();
-        alert(`¡Se importaron ${count} citas exitosamente!`);
-        mostrarCitas();
-    };
-    lector.readAsText(archivo);
-}
-
 function vaciarCitas() {
     if (confirm("⚠️ ¿Estás segura de que deseas borrar TODAS las citas registradas?")) {
         citas = [];
@@ -674,7 +738,6 @@ function mostrarRegistro(anio = 2026) {
 
     let filasTabla = terminadosList.map((l) => {
         const dias = calcularDiasLectura(l.inicio, l.final);
-
         return `
             <tr>
                 <td><span class="badge-estado ${normalizarClase(l.estado)}">${l.estado}</span></td>
@@ -701,14 +764,7 @@ function mostrarRegistro(anio = 2026) {
                 <table class="tabla-registro-planner">
                     <thead>
                         <tr>
-                            <th>Estado</th>
-                            <th>Título</th>
-                            <th>Autor</th>
-                            <th>Inicio</th>
-                            <th>Final</th>
-                            <th>Días</th>
-                            <th>Puntaje</th>
-                            <th>Acciones</th>
+                            <th>Estado</th><th>Título</th><th>Autor</th><th>Inicio</th><th>Final</th><th>Días</th><th>Puntaje</th><th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>${filasTabla}</tbody>
@@ -725,7 +781,6 @@ function mostrarRegistro(anio = 2026) {
     `;
 }
 
-// --- IMPORTACIÓN CSV DE LIBROS (SINOPSIS Y TROPES) ---
 function importarDesdeCSV(event) {
     const archivo = event.target.files[0];
     if (!archivo) return;
@@ -852,7 +907,6 @@ function mostrarEstadisticas(anio = 2026) {
 
     let termEsp = terminadosList.filter(l => (l.idioma || "Español").toLowerCase().includes("espa")).length;
     let termIng = terminadosList.filter(l => (l.idioma || "Español").toLowerCase().includes("ing")).length;
-
     let proxEsp = proximosList.filter(l => (l.idioma || "Español").toLowerCase().includes("espa")).length;
     let proxIng = proximosList.filter(l => (l.idioma || "Español").toLowerCase().includes("ing")).length;
 
@@ -1083,7 +1137,6 @@ function verDetalleAdaptacion(id) {
 
     const estrellasLibroHtml = generarEstrellasGrandes(libInactivo ? 0 : ad.ratingLibro, libInactivo);
     const estrellasPeliHtml = generarEstrellasGrandes(pelInactivo ? 0 : ad.ratingPelicula, pelInactivo);
-
     const numLibreria = obtenerNumeroLibroEnLibreria(ad.nombreLibro || ad.titulo);
 
     document.getElementById("contenido").innerHTML = `
