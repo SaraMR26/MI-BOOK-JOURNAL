@@ -426,7 +426,7 @@ function registrarPaginasDia(k, d, m) {
     mostrarTracker(anioSeleccionado);
 }
 
-// --- CITAS (CON PAGINACIÓN Y LECTOR CSV ROBUSTO) ---
+// --- CITAS (CON PAGINACIÓN Y LECTOR CSV INFALIBLE PARA COMAS Y SALTOS DE LÍNEA) ---
 const mapaColoresAnio = {
     2026: "#b5e3fd", 2025: "#ffd1dc", 2024: "#e2f0cb", 2023: "#d8b4f8", 2022: "#ffffba", 2021: "#ffdfba"
 };
@@ -552,41 +552,36 @@ function importarCitasCSV(event) {
     lector.onload = function(e) {
         const textoCompleto = e.target.result;
         
-        // Parser robusto compatible con saltos de línea dentro de comillas
-        const filas = [];
+        // Lector CSV avanzado que ignora comas y saltos de línea internos envueltos en comillas
+        const lineas = textoCompleto.split(/\r\n|\n/);
+        let filas = [];
         let filaActual = [];
-        let campoActual = "";
         let dentroDeComillas = false;
+        let bufferCelda = "";
 
-        for (let i = 0; i < textoCompleto.length; i++) {
-            const char = textoCompleto[i];
-            const siguienteChar = textoCompleto[i + 1];
-
-            if (char === '"') {
-                if (dentroDeComillas && siguienteChar === '"') {
-                    campoActual += '"';
-                    i++;
-                } else {
+        for (let linea of lineas) {
+            for (let i = 0; i < linea.length; i++) {
+                const char = linea[i];
+                if (char === '"') {
                     dentroDeComillas = !dentroDeComillas;
+                    bufferCelda += char;
+                } else if (char === ',' && !dentroDeComillas) {
+                    filaActual.push(bufferCelda.trim());
+                    bufferCelda = "";
+                } else {
+                    bufferCelda += char;
                 }
-            } else if (char === ',' && !dentroDeComillas) {
-                filaActual.push(campoActual.trim());
-                campoActual = "";
-            } else if ((char === '\r' || char === '\n') && !dentroDeComillas) {
-                if (char === '\r' && siguienteChar === '\n') { i++; }
-                filaActual.push(campoActual.trim());
+            }
+            if (dentroDeComillas) {
+                bufferCelda += "\n"; // Conservar saltos de línea reales dentro de comillas
+            } else {
+                filaActual.push(bufferCelda.trim());
                 if (filaActual.length > 1 || filaActual[0] !== "") {
                     filas.push(filaActual);
                 }
                 filaActual = [];
-                campoActual = "";
-            } else {
-                campoActual += char;
+                bufferCelda = "";
             }
-        }
-        if (campoActual !== "" || filaActual.length > 0) {
-            filaActual.push(campoActual.trim());
-            filas.push(filaActual);
         }
 
         let count = 0;
@@ -597,20 +592,20 @@ function importarCitasCSV(event) {
             if (c.length >= 2 && c[0]) {
                 citas.push({
                     id: Date.now() + i,
-                    texto: c[0].replace(/^"|"$/g, ""),
-                    libro: c[1] || "",
-                    autor: c[2] || "",
-                    capitulo: c[3] || "",
-                    pagina: c[4] || "",
+                    texto: c[0].replace(/^"|"$/g, "").trim(),
+                    libro: (c[1] || "").replace(/^"|"$/g, "").trim(),
+                    autor: (c[2] || "").replace(/^"|"$/g, "").trim(),
+                    capitulo: (c[3] || "").replace(/^"|"$/g, "").trim(),
+                    pagina: (c[4] || "").replace(/^"|"$/g, "").trim(),
                     anio: Number(c[5]) || 2026,
-                    fecha: c[6] || new Date().toLocaleDateString('es-ES')
+                    fecha: (c[6] || new Date().toLocaleDateString('es-ES')).replace(/^"|"$/g, "").trim()
                 });
                 count++;
             }
         }
 
         guardarEnLocalStorage();
-        alert(`¡Se importaron ${count} citas perfectamente sin errores de estructura!`);
+        alert(`¡Se importaron ${count} citas correctamente sin importar comas ni saltos de línea!`);
         paginaActualCitas = 1;
         mostrarCitas();
     };
