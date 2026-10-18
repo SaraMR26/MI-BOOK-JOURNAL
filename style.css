@@ -439,3 +439,15 @@ body {
     .tabla-registro-planner, .tabla-comparativa-meses { font-size: 11px; }
     .tabla-registro-planner th, .tabla-registro-planner td { padding: 6px 4px; }
 }
+.cita-caja-texto {
+    flex: 1;
+    border-radius: 16px;
+    padding: 25px;
+    position: relative;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    color: #1a202c;
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 120px;
+    white-space: pre-wrap; /* Esta línea hace que se respeten los saltos de línea y correos como en tu imagen */
+}
