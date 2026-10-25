@@ -1,6 +1,4 @@
-// ==========================================
-// BASE DE DATOS LOCAL Y ESTADO GLOBAL
-// ==========================================
+// --- BASE DE DATOS LOCAL ---
 let libros = JSON.parse(localStorage.getItem("libros")) || [];
 let citas = JSON.parse(localStorage.getItem("citas")) || [];
 let adaptaciones = JSON.parse(localStorage.getItem("adaptaciones")) || [];
@@ -10,12 +8,10 @@ let metas = JSON.parse(localStorage.getItem("metas")) || [
     { id: 2, titulo: "Leer al menos 5,000 páginas", objetivo: 5000, actual: 0, completada: false },
     { id: 3, titulo: "Explorar un nuevo género literario", objetivo: 1, actual: 0, completada: false }
 ];
-
 let anioSeleccionado = 2026;
 let paginaActualCitas = 1;
 const citasPorPagina = 10;
 
-// Guardar en LocalStorage
 function guardarEnLocalStorage() {
     localStorage.setItem("libros", JSON.stringify(libros));
     localStorage.setItem("citas", JSON.stringify(citas));
@@ -24,9 +20,6 @@ function guardarEnLocalStorage() {
     localStorage.setItem("metas", JSON.stringify(metas));
 }
 
-// ==========================================
-// FUNCIONES DE UTILIDAD Y FORMATO
-// ==========================================
 function generarEstrellas(rating, inactivo = false) {
     let s = "";
     const num = Number(rating) || 0;
@@ -37,18 +30,17 @@ function generarEstrellas(rating, inactivo = false) {
     return `<span style="${colorEstilo} font-size:18px;">${s}</span>`;
 }
 
-function normalizarClase(t) {
-    return t ? t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-") : "";
+function obtenerNumeroLibroEnLibreria(tituloLibro) {
+    if (!tituloLibro) return "";
+    const index = libros.findIndex(l => l.titulo && l.titulo.trim().toLowerCase() === tituloLibro.trim().toLowerCase());
+    return index !== -1 ? (libros[index].numero || index + 1) : "";
 }
 
 function calcularDiasLectura(inicioStr, finalStr) {
-    if (!inicioStr || !finalStr || inicioStr === "Desconocida" || finalStr === "Desconocida") return "---";
+    if (!inicioStr || !finalStr) return "---";
     const parseFecha = (str) => {
-        const s = str.trim();
-        let partes = s.split('/');
+        const partes = str.split('/');
         if (partes.length === 3) return new Date(partes[2], partes[1] - 1, partes[0]);
-        partes = s.split('-');
-        if (partes.length === 3) return new Date(partes[0], partes[1] - 1, partes[2]);
         return null;
     };
     const f1 = parseFecha(inicioStr);
@@ -63,7 +55,6 @@ function obtenerSelectorAniosHTML(funcionCallback) {
     let aniosSet = new Set([2026, 2025, 2024, 2023, 2022, 2021]);
     libros.forEach(l => { if (l.anio) aniosSet.add(Number(l.anio)); });
     let aniosOrdenados = Array.from(aniosSet).sort((a, b) => b - a);
-
     let html = `<div class="selector-anio">`;
     aniosOrdenados.forEach(a => {
         html += `<button class="btn-anio ${anioSeleccionado === a ? 'activo' : ''}" onclick="${funcionCallback}(${a})">${a}</button>`;
@@ -72,159 +63,11 @@ function obtenerSelectorAniosHTML(funcionCallback) {
     return html;
 }
 
-function cambiarAnioGlobal(nuevoAnio, vista = 'libreria') {
-    anioSeleccionado = Number(nuevoAnio);
-    mostrarPagina(vista);
-}
-
-// ==========================================
-// PARSER CSV MULTILÍNEA ROBUSTO
-// ==========================================
-function parseCSVMultilinea(textoCompleto) {
-    const filas = [];
-    let filaActual = [];
-    let campoActual = "";
-    let dentroDeComillas = false;
-
-    for (let i = 0; i < textoCompleto.length; i++) {
-        const char = textoCompleto[i];
-        const siguienteChar = textoCompleto[i + 1];
-
-        if (char === '"') {
-            if (dentroDeComillas && siguienteChar === '"') {
-                campoActual += '"';
-                i++; // Saltar la siguiente comilla escapada
-            } else {
-                dentroDeComillas = !dentroDeComillas;
-            }
-        } else if (char === ',' && !dentroDeComillas) {
-            filaActual.push(campoActual.trim());
-            campoActual = "";
-        } else if ((char === '\r' || char === '\n') && !dentroDeComillas) {
-            if (char === '\r' && siguienteChar === '\n') { i++; }
-            filaActual.push(campoActual.trim());
-            if (filaActual.length > 1 || filaActual[0] !== "") {
-                filas.push(filaActual);
-            }
-            filaActual = [];
-            campoActual = "";
-        } else {
-            campoActual += char;
-        }
-    }
-    if (campoActual !== "" || filaActual.length > 0) {
-        filaActual.push(campoActual.trim());
-        filas.push(filaActual);
-    }
-    return filas;
-}
-
-// Importar Reseñas desde CSV (Estructura de RESEÑA.txt)
-function importarResenasCSV(event) {
-    const archivo = event.target.files[0];
-    if (!archivo) return;
-    const lector = new FileReader();
-    lector.onload = function(e) {
-        const textoCompleto = e.target.result;
-        const filas = parseCSVMultilinea(textoCompleto);
-
-        let count = 0;
-        const inicioIndex = (filas.length > 0 && (filas[0][0].toLowerCase().includes("estado") || filas[0][0].toLowerCase().includes("titulo"))) ? 1 : 0;
-
-        for (let i = inicioIndex; i < filas.length; i++) {
-            const c = filas[i];
-            if (c.length >= 2 && (c[0] || c[1])) {
-                // Mapeo según la estructura: estado,titulo,autor,inicio,final,rating,personaje1,personaje2,trope,idioma,formato,paginas_saga,portada,sinopsis,notes
-                const calificacionEstrellas = (c[5] || "").match(/★/g)?.length || (Number(c[5]) || 0);
-
-                // Determinar el año a partir de las fechas
-                let anioDet = 2026;
-                const fechaRef = c[4] || c[3];
-                if (fechaRef && fechaRef.trim() !== "" && fechaRef !== "Desconocida") {
-                    const matchAnio = fechaRef.match(/\d{4}/);
-                    if (matchAnio) anioDet = Number(matchAnio[0]);
-                }
-
-                const nuevoLibro = {
-                    id: Date.now() + i,
-                    numero: libros.length + count + 1,
-                    estado: c[0] || "Terminado",
-                    titulo: c[1] ? c[1].replace(/^"|"$/g, "") : "Sin título",
-                    autor: c[2] || "",
-                    inicio: c[3] || "",
-                    final: c[4] || "",
-                    calificacion: calificacionEstrellas,
-                    personaje1: c[6] || "",
-                    personaje2: c[7] || "",
-                    trope: c[8] || "",
-                    idioma: c[9] || "Español",
-                    formato: c[10] || "Descargado",
-                    saga: c[11] || "",
-                    portada: c[12] || "",
-                    sipnosis: c[13] || "",
-                    notes: c[14] || "",
-                    opinion_personal: c[14] || "",
-                    paginas: Number(c[11]?.match(/\d+/)?.[0]) || 0,
-                    anio: anioDet
-                };
-                libros.push(nuevoLibro);
-                count++;
-            }
-        }
-
-        guardarEnLocalStorage();
-        alert(`¡Se importaron ${count} libros y reseñas correctamente!`);
-        mostrarLibreria();
-    };
-    lector.readAsText(archivo, "UTF-8");
-}
-
-// Importar Citas desde CSV
-function importarCitasCSV(event) {
-    const archivo = event.target.files[0];
-    if (!archivo) return;
-    const lector = new FileReader();
-    lector.onload = function(e) {
-        const textoCompleto = e.target.result;
-        const filas = parseCSVMultilinea(textoCompleto);
-
-        let count = 0;
-        const inicioIndex = filas.length > 0 && filas[0][0].toLowerCase().includes("texto") ? 1 : 0;
-
-        for (let i = inicioIndex; i < filas.length; i++) {
-            const c = filas[i];
-            if (c.length >= 2 && c[0]) {
-                citas.push({
-                    id: Date.now() + i,
-                    texto: c[0].replace(/^"|"$/g, ""),
-                    libro: c[1] || "",
-                    autor: c[2] || "",
-                    capitulo: c[3] || "",
-                    pagina: c[4] || "",
-                    anio: Number(c[5]) || 2026,
-                    fecha: c[6] || new Date().toLocaleDateString('es-ES')
-                });
-                count++;
-            }
-        }
-
-        guardarEnLocalStorage();
-        alert(`¡Se importaron ${count} citas correctamente sin errores de estructura!`);
-        paginaActualCitas = 1;
-        mostrarCitas();
-    };
-    lector.readAsText(archivo, "UTF-8");
-}
-
-// ==========================================
-// ENRUTADOR PRINCIPAL DE PÁGINAS
-// ==========================================
 function mostrarPagina(pagina) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         if (btn.getAttribute('data-tab') === pagina) btn.classList.add('active');
         else btn.classList.remove('active');
     });
-
     const contenido = document.getElementById("contenido");
     if (pagina === "inicio") contenido.innerHTML = `<div class="portada-inicio"><h1>BOOK<br>JOURNAL</h1></div>`;
     else if (pagina === "libreria") mostrarLibreria();
@@ -238,600 +81,496 @@ function mostrarPagina(pagina) {
     else if (pagina === "registro") mostrarRegistro();
     else if (pagina === "estadisticas") mostrarEstadisticas();
     else if (pagina === "adaptaciones") mostrarAdaptaciones();
-    else if (pagina === "recap") mostrarRecap();
+    else if (pagina === "recap") mostrarRecapPorAnio();
 }
 
-window.onload = function() {
-    mostrarPagina('inicio');
-};
-
-// ==========================================
-// VISTA: LIBRERÍA Y RESEÑAS
-// ==========================================
+// --- LIBRERÍA Y CSV DE RESEÑAS CON FILTROS ---
 function mostrarLibreria() {
     const contenido = document.getElementById("contenido");
-    const librosFiltrados = libros.filter(l => (l.anio || 2026) === anioSeleccionado);
+    
+    const inputBusqueda = document.getElementById("busquedaLibro");
+    const selectRating = document.getElementById("filtroRating");
+    const selectTrope = document.getElementById("filtroTrope");
 
-    let html = obtenerSelectorAniosHTML("cambiarAnioLibreria");
-    html += `
+    const filtroTexto = inputBusqueda ? inputBusqueda.value.toLowerCase() : "";
+    const filtroRating = selectRating ? selectRating.value : "todos";
+    const filtroTrope = selectTrope ? selectTrope.value : "todos";
+
+    let tropesUnicos = new Set();
+    libros.forEach(l => {
+        if (l.tropes && Array.isArray(l.tropes)) {
+            l.tropes.forEach(t => { if (t) tropesUnicos.add(t.trim()); });
+        }
+    });
+    let opcionesTropesHTML = `<option value="todos">Todos los tropes</option>`;
+    Array.from(tropesUnicos).sort().forEach(t => {
+        opcionesTropesHTML += `<option value="${t}" ${filtroTrope === t ? 'selected' : ''}>${t}</option>`;
+    });
+
+    let headerLibreria = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-            <h2>Librería Digital (${anioSeleccionado})</h2>
-            <label class="btn-tabla-accion" style="background:#5b9bd5; color:white; padding:8px 14px; border-radius:6px; cursor:pointer;">
-                📥 Importar Reseñas CSV
-                <input type="file" accept=".csv" onchange="importarResenasCSV(event)" style="display:none;">
-            </label>
+            <h2 style="font-size:24px; font-weight:bold;">LIBRERÍA</h2>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <input type="text" id="busquedaLibro" value="${filtroTexto}" placeholder="🔍 Título/autor..." oninput="filtrarLibreriaEnVivo()" style="padding: 6px 10px; border: 1px solid #bce1f7; border-radius: 6px; font-size: 12px; width: 140px;">
+                
+                <select id="filtroRating" onchange="filtrarLibreriaEnVivo()" style="padding: 6px; border: 1px solid #bce1f7; border-radius: 6px; font-size: 12px; background: white;">
+                    <option value="todos" ${filtroRating === 'todos' ? 'selected' : ''}>Estrellas</option>
+                    <option value="5" ${filtroRating === '5' ? 'selected' : ''}>★★★★★ (5)</option>
+                    <option value="4" ${filtroRating === '4' ? 'selected' : ''}>★★★★☆ (4)</option>
+                    <option value="3" ${filtroRating === '3' ? 'selected' : ''}>★★★☆☆ (3)</option>
+                    <option value="2" ${filtroRating === '2' ? 'selected' : ''}>★★☆☆☆ (2)</option>
+                    <option value="1" ${filtroRating === '1' ? 'selected' : ''}>★☆☆☆☆ (1)</option>
+                </select>
+
+                <select id="filtroTrope" onchange="filtrarLibreriaEnVivo()" style="padding: 6px; border: 1px solid #bce1f7; border-radius: 6px; font-size: 12px; background: white; max-width: 140px;">
+                    ${opcionesTropesHTML}
+                </select>
+
+                <input type="file" id="input-csv-resenas" accept=".txt,.csv" style="display:none" onchange="importarResenasCSV(event)">
+                <button onclick="document.getElementById('input-csv-resenas').click()" class="boton-volver" style="background:#48bb78; color:white; margin:0; font-size:12px;">📂 Importar</button>
+            </div>
         </div>
-        <div class="lista-libros">
     `;
 
+    if (libros.length === 0) {
+        contenido.innerHTML = `${headerLibreria}<p style="text-align:center; color:#666; margin-top:40px;">Tu librería está vacía. Importa tu archivo RESEÑA.txt[cite: 1].</p>`;
+        return;
+    }
+
+    let librosFiltrados = libros.filter(l => {
+        let matchTexto = (l.titulo && l.titulo.toLowerCase().includes(filtroTexto)) || (l.autor && l.autor.toLowerCase().includes(filtroTexto));
+        let matchRating = filtroRating === 'todos' || Number(l.rating) === Number(filtroRating);
+        let matchTrope = filtroTrope === 'todos' || (l.tropes && l.tropes.map(t => t.trim()).includes(filtroTrope));
+        return matchTexto && matchRating && matchTrope;
+    });
+
+    let tarjetas = "";
     if (librosFiltrados.length === 0) {
-        html += `<p style="grid-column: 1/-1; text-align:center; color:#777; padding:30px;">No hay libros registrados en ${anioSeleccionado}. Importa tu CSV de reseñas para comenzar.</p>`;
+        tarjetas = `<p style="text-align:center; color:#666; margin-top:30px; grid-column: 1 / -1;">No se encontraron libros con los filtros seleccionados.</p>`;
     } else {
-        librosFiltrados.forEach((libro, index) => {
-            const indexOriginal = libros.indexOf(libro);
-            const idiomaClase = normalizarClase(libro.idioma) === 'ingles' ? 'ingles' : 'espanol';
-            html += `
-                <div class="tarjeta-libro" onclick="verDetalleLibro(${indexOriginal})">
+        librosFiltrados.forEach((l, i) => {
+            const num = l.numero || (i + 1);
+            const idiomaClase = (l.idioma || "Español").toLowerCase().includes("ing") ? "ingles" : "espanol";
+            const estadoTxt = (l.estado === "Próximo" || l.estado === "Por leer") ? `<span class="badge-estado proximo" style="font-size:9px; margin-top:2px;">Próximo</span>` : "";
+            tarjetas += `
+                <div class="tarjeta-libro" onclick="verResenaLibro(${l.id})">
                     <div class="contenedor-portada">
-                        <span class="badge-numero">${libro.numero || index + 1}</span>
-                        <img src="${libro.portada || 'https://via.placeholder.com/130x190'}" alt="${libro.titulo}">
+                        <span class="badge-numero">${num}</span>
+                        <img src="${l.portada || 'imagenes/libro-default.jpg'}" onerror="this.src='imagenes/libro-default.jpg'">
                     </div>
-                    <div class="linea-subrayado ${idiomaClase}"></div>
-                    <strong style="font-size:13px; font-family:Georgia, serif;">${libro.titulo}</strong>
-                    <span style="font-size:11px; color:#555;">${libro.autor}</span>
-                    <div class="estrellas">${generarEstrellas(libro.calificacion)}</div>
-                    <span class="badge-idioma ${idiomaClase}">${libro.idioma || 'Español'}</span>
+                    <div class="estrellas">${generarEstrellas(l.rating)}</div>
+                    <div class="linea-subrayado ${idiomaClase}">${l.titulo}</div>
+                    <div style="font-size:12px; color:#555;">${l.autor}</div>
+                    <span class="badge-idioma ${idiomaClase}">${l.idioma || 'Español'}</span>
+                    ${estadoTxt}
                 </div>
             `;
         });
     }
 
-    html += `</div>`;
-    contenido.innerHTML = html;
+    contenido.innerHTML = `${headerLibreria}<div class="lista-libros">${tarjetas}</div>`;
 }
 
-function cambiarAnioLibreria(a) { cambiarAnioGlobal(a, 'libreria'); }
+function filtrarLibreriaEnVivo() {
+    const filtroTexto = document.getElementById("busquedaLibro").value.toLowerCase();
+    const filtroRating = document.getElementById("filtroRating").value;
+    const filtroTrope = document.getElementById("filtroTrope").value;
+    const contenedorTarjetas = document.querySelector(".lista-libros");
+    
+    let librosFiltrados = libros.filter(l => {
+        let matchTexto = (l.titulo && l.titulo.toLowerCase().includes(filtroTexto)) || (l.autor && l.autor.toLowerCase().includes(filtroTexto));
+        let matchRating = filtroRating === 'todos' || Number(l.rating) === Number(filtroRating);
+        let matchTrope = filtroTrope === 'todos' || (l.tropes && l.tropes.map(t => t.trim()).includes(filtroTrope));
+        return matchTexto && matchRating && matchTrope;
+    });
 
-function verDetalleLibro(index) {
-    const libro = libros[index];
-    const contenido = document.getElementById("contenido");
-    const idiomaClase = normalizarClase(libro.idioma) === 'ingles' ? 'ingles' : 'espanol';
+    let tarjetas = "";
+    if (librosFiltrados.length === 0) {
+        tarjetas = `<p style="text-align:center; color:#666; margin-top:30px; grid-column: 1 / -1;">No se encontraron libros con los filtros seleccionados.</p>`;
+    } else {
+        librosFiltrados.forEach((l, i) => {
+            const num = l.numero || (i + 1);
+            const idiomaClase = (l.idioma || "Español").toLowerCase().includes("ing") ? "ingles" : "espanol";
+            const estadoTxt = (l.estado === "Próximo" || l.estado === "Por leer") ? `<span class="badge-estado proximo" style="font-size:9px; margin-top:2px;">Próximo</span>` : "";
+            tarjetas += `
+                <div class="tarjeta-libro" onclick="verResenaLibro(${l.id})">
+                    <div class="contenedor-portada">
+                        <span class="badge-numero">${num}</span>
+                        <img src="${l.portada || 'imagenes/libro-default.jpg'}" onerror="this.src='imagenes/libro-default.jpg'">
+                    </div>
+                    <div class="estrellas">${generarEstrellas(l.rating)}</div>
+                    <div class="linea-subrayado ${idiomaClase}">${l.titulo}</div>
+                    <div style="font-size:12px; color:#555;">${l.autor}</div>
+                    <span class="badge-idioma ${idiomaClase}">${l.idioma || 'Español'}</span>
+                    ${estadoTxt}
+                </div>
+            `;
+        });
+    }
+    if (contenedorTarjetas) contenedorTarjetas.innerHTML = tarjetas;
+}
 
-    let html = `
-        <button class="boton-volver" onclick="mostrarPagina('libreria')">← Volver a la Librería</button>
+// Parser multilínea infalible para RESEÑA.txt (soportando comillas y saltos de línea internos)
+function importarResenasCSV(event) {
+    const archivo = event.target.files[0];
+    if (!archivo) return;
+    const lector = new FileReader();
+    lector.onload = function(e) {
+        const textoCompleto = e.target.result;
+        let filas = [];
+        let filaActual = [];
+        let dentroDeComillas = false;
+        let bufferCelda = "";
+
+        for (let i = 0; i < textoCompleto.length; i++) {
+            let char = textoCompleto[i];
+            let nextChar = textoCompleto[i + 1];
+
+            if (char === '"') {
+                if (dentroDeComillas && nextChar === '"') {
+                    bufferCelda += '"';
+                    i++;
+                } else {
+                    dentroDeComillas = !dentroDeComillas;
+                }
+            } else if (char === ',' && !dentroDeComillas) {
+                filaActual.push(bufferCelda.trim());
+                bufferCelda = "";
+            } else if ((char === '\r' || char === '\n') && !dentroDeComillas) {
+                if (char === '\r' && nextChar === '\n') i++;
+                filaActual.push(bufferCelda.trim());
+                if (filaActual.length > 1 || filaActual[0] !== "") {
+                    filas.push(filaActual);
+                }
+                filaActual = [];
+                bufferCelda = "";
+            } else {
+                bufferCelda += char;
+            }
+        }
+        if (bufferCelda !== "" || filaActual.length > 0) {
+            filaActual.push(bufferCelda.trim());
+            filas.push(filaActual);
+        }
+
+        if (filas.length < 2) {
+            alert("El archivo está vacío o no contiene filas válidas.");
+            return;
+        }
+
+        // Encabezado exacto: titulo,autor,paginas,inicio,final,estado,rating,personaje1,personaje2,trope,idioma,formato,saga,portada,sinopsis,notes[cite: 1]
+        let headers = filas[0].map(h => h.toLowerCase().replace(/^\ufeff/, '').trim());
+        let nuevosLibros = [];
+
+        for (let i = 1; i < filas.length; i++) {
+            let row = filas[i];
+            let obj = {};
+            for (let j = 0; j < headers.length; j++) {
+                let val = row[j] !== undefined ? row[j].replace(/^"|"$/g, "").trim() : "";
+                obj[headers[j]] = val;
+            }
+            if (obj.titulo) {
+                let anioExt = obj.final ? (obj.final.split('/')[2] || 2026) : 2026;
+                nuevosLibros.push({
+                    id: Date.now() + i,
+                    numero: i,
+                    titulo: obj.titulo,
+                    autor: obj.autor || "Desconocido",
+                    paginas: Number(obj.paginas) || 0,
+                    inicio: obj.inicio || "",
+                    final: obj.final || "",
+                    estado: obj.estado || "Terminado",
+                    rating: Number(obj.rating) || 5,
+                    personaje1: obj.personaje1 || "",
+                    personaje2: obj.personaje2 || "",
+                    tropes: obj.trope ? obj.trope.split(',').map(t => t.trim().replace(/^"|"$/g, "")) : [],
+                    idioma: obj.idioma || "Español",
+                    formato: obj.formato || "Físico",
+                    saga: obj.saga || "",
+                    portada: obj.portada || "imagenes/libro-default.jpg",
+                    sinopsis: obj.sinopsis || "",
+                    notes: obj.notes || "",
+                    anio: Number(anioExt),
+                    mes: "enero",
+                    esFavoritoMes: false
+                });
+            }
+        }
+
+        if (nuevosLibros.length > 0) {
+            libros = nuevosLibros;
+            guardarEnLocalStorage();
+            alert(`¡Se importaron ${libros.length} reseñas exitosamente desde RESEÑA.txt[cite: 1]!`);
+            mostrarLibreria();
+        } else {
+            alert("No se pudieron procesar los registros. Verifica el formato del encabezado.");
+        }
+    };
+    lector.readAsText(archivo, 'UTF-8');
+}
+
+function verResenaLibro(id) {
+    const l = libros.find(item => item.id === id);
+    if (!l) return;
+    const dias = calcularDiasLectura(l.inicio, l.final);
+    const idiomaClase = (l.idioma || "Español").toLowerCase().includes("ing") ? "ingles" : "espanol";
+    const listaTropesStr = (l.tropes || []).join(', ');
+    document.getElementById("contenido").innerHTML = `
         <div class="vista-resena">
-            <h2>${libro.titulo}</h2>
-            <p style="font-style:italic; font-size:14px; color:#555; margin-bottom:10px;">${libro.autor} ${libro.saga ? `— <b>${libro.saga}</b>` : ''}</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <button onclick="mostrarLibreria()" class="boton-volver">← Volver</button>
+                <div>
+                    <button onclick="eliminarLibro(${l.id})" class="boton-volver" style="background:#f87171; color:white;">🗑️ Borrar</button>
+                </div>
+            </div>
             <div class="resena-contenido">
                 <div class="columna-izquierda-resena">
                     <div class="contenedor-portada" style="width:160px; height:230px;">
-                        <img src="${libro.portada || 'https://via.placeholder.com/160x230'}" alt="${libro.titulo}">
+                        <span class="badge-numero">${l.numero || 1}</span>
+                        <img src="${l.portada}" onerror="this.src='imagenes/libro-default.jpg'">
                     </div>
-                    <div class="estrellas" style="margin-top:10px;">${generarEstrellas(libro.calificacion)}</div>
-                    <span class="badge-idioma ${idiomaClase}" style="margin-top:6px;">${libro.idioma || 'Español'}</span>
-                    
-                    <div class="caja-notas">
-                        <h4>Detalles de Lectura</h4>
-                        <ul>
-                            ${libro.personaje1 ? `<li><b>Personaje 1:</b> ${libro.personaje1}</li>` : ''}
-                            ${libro.personaje2 ? `<li><b>Personaje 2:</b> ${libro.personaje2}</li>` : ''}
-                            ${libro.trope ? `<li><b>Trope:</b> ${libro.trope}</li>` : ''}
-                            ${libro.formato ? `<li><b>Formato:</b> ${libro.formato}</li>` : ''}
-                            ${libro.estado ? `<li><b>Estado:</b> ${libro.estado}</li>` : ''}
-                        </ul>
-                    </div>
+                    <div class="estrellas" style="font-size:22px; margin-top:8px;">${generarEstrellas(l.rating)}</div>
+                    <div class="linea-subrayado ${idiomaClase}" style="text-align:center;">${l.titulo}</div>
+                    <div style="font-size:13px; text-align:center; margin-bottom:4px;">${l.autor}</div>
+                    <span class="badge-idioma ${idiomaClase}">${l.idioma || 'Español'}</span>
+                    <div class="caja-notas" style="margin-top:10px;"><h4>TROPES:</h4><p>${listaTropesStr || 'Sin tropes'}</p></div>
                 </div>
                 <div class="columna-derecha-resena">
-                    ${libro.sipnosis ? `<div class="texto-sinopsis"><b>Sinopsis:</b><br>${libro.sipnosis.replace(/\n/g, '<br>')}</div>` : ''}
-                    <div style="margin-top:15px;"><b>Opinión / Reseña:</b><br>${(libro.notes || libro.opinion_personal || 'Sin notas adicionales.').replace(/\n/g, '<br>')}</div>
+                    <div class="texto-sinopsis"><b>Sinopsis:</b><br>${l.sinopsis || "Sin sinopsis disponible."}</div>
+                    <div class="texto-sinopsis" style="margin-top:10px;"><b>Notas / Opiniones:</b><br>${l.notes || "Sin notas registradas."}</div>
+                    <div class="metadatos-inferior">
+                        <div class="metadatos-row"><span>PERSONAJES: <b>${l.personaje1 || '---'} & ${l.personaje2 || '---'}</b></span></div>
+                        <div class="metadatos-row"><span>IDIOMA: <b>${l.idioma || 'Español'}</b></span><span>ESTADO: <b>${l.estado}</b></span></div>
+                        <div class="metadatos-row"><span>PÁGINAS: ${l.paginas||'---'}</span><span>SAGA: ${l.saga||'Autoconclusivo'}</span></div>
+                        <div class="metadatos-row"><span>INICIO: ${l.inicio||'---'}</span><span>FINAL: ${l.final||'---'} (${dias})</span></div>
+                    </div>
                 </div>
-            </div>
-            <div class="metadatos-inferior">
-                <div class="metadatos-row"><span>Páginas / Saga: ${libro.paginas || libro.saga || '---'}</span><span>Días de lectura: ${calcularDiasLectura(libro.inicio, libro.final)}</span></div>
-                <div class="metadatos-row"><span>Fecha Inicio: ${libro.inicio || '---'}</span><span>Fecha Final: ${libro.final || '---'}</span></div>
             </div>
         </div>
     `;
-    contenido.innerHTML = html;
 }
 
-// ==========================================
-// VISTA: ESTANTERÍAS DE MADERA
-// ==========================================
-function mostrarEstanterias() {
-    const contenido = document.getElementById("contenido");
-    const librosFiltrados = libros.filter(l => (l.anio || 2026) === anioSeleccionado);
-
-    let html = obtenerSelectorAniosHTML("cambiarAnioEstanteria");
-    html += `<h2>Estantería Virtual (${anioSeleccionado})</h2><div class="estanteria-contenedor">`;
-
-    // Organizar en repisas de máximo 10 libros
-    for (let i = 0; i < librosFiltrados.length; i += 10) {
-        const bloque = librosFiltrados.slice(i, i + 10);
-        html += `<div class="repisa-madera">`;
-        bloque.forEach(libro => {
-            const indexOriginal = libros.indexOf(libro);
-            const alto = Math.min(170, Math.max(120, (libro.paginas || 300) / 3));
-            const colorBg = ['#fca5a5', '#fcd34d', '#86efac', '#93c5fd', '#c084fc', '#f472b6'][indexOriginal % 6];
-            html += `
-                <div class="libro-tomo" style="height:${alto}px; width:34px; background-color:${colorBg};" onclick="verDetalleLibro(${indexOriginal})" title="${libro.titulo}">
-                    <span>${libro.titulo}</span>
-                </div>
-            `;
-        });
-        html += `</div>`;
+function eliminarLibro(id) {
+    if (confirm("¿Estás seguro de eliminar este libro?")) {
+        libros = libros.filter(item => item.id !== id);
+        guardarEnLocalStorage();
+        mostrarLibreria();
     }
-
-    if (librosFiltrados.length === 0) {
-        html += `<div class="repisa-madera"><p style="width:100%; text-align:center; color:#888;">Estantería vacía para este año.</p></div>`;
-    }
-
-    html += `</div>`;
-    contenido.innerHTML = html;
 }
 
-function cambiarAnioEstanteria(a) { cambiarAnioGlobal(a, 'estanterias'); }
-
-// ==========================================
-// VISTA: FAVORITO DEL MES
-// ==========================================
-function mostrarFavoritosPorAnio() {
+// --- ESTADÍSTICAS CON TOP 5 DE TROPES ---
+function mostrarEstadisticas() {
     const contenido = document.getElementById("contenido");
-    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
-    let html = obtenerSelectorAniosHTML("cambiarAnioFavorito");
-    html += `<h2>Favorito del Mes (${anioSeleccionado})</h2><div class="contenedor-favoritos"><div class="grilla-favoritos-meses">`;
-
-    meses.forEach((mes, idx) => {
-        // Buscar libro leído en el mes de este año
-        const libroFav = libros.find(l => (l.anio || 2026) === anioSeleccionado && l.final && l.final.includes(`/${String(idx + 1).padStart(2, '0')}/`));
-
-        html += `
-            <div class="tarjeta-mes-fav">
-                <span class="nombre-mes-cursiva">${mes}</span>
-                <div class="slot-portadas">
-                    <div class="portada-slot">
-                        ${libroFav ? `<img src="${libroFav.portada}" alt="${libroFav.titulo}">` : `<span>Sin favorito</span>`}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-
-    html += `</div></div>`;
-    contenido.innerHTML = html;
-}
-
-function cambiarAnioFavorito(a) { cambiarAnioGlobal(a, 'favorito'); }
-
-// ==========================================
-// VISTA: READING TRACKER
-// ==========================================
-function mostrarTracker() {
-    const contenido = document.getElementById("contenido");
-    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
-    let html = obtenerSelectorAniosHTML("cambiarAnioTracker");
-    html += `<h2>Reading Tracker (${anioSeleccionado})</h2><div class="tracker-anual-container"><div class="tracker-tabla-wrapper"><table class="tabla-tracker-anual"><thead><tr><th>Día</th>`;
-
-    meses.forEach(m => {
-        html += `<th class="th-mes"><div class="th-mes-texto">${m}</div></th>`;
-    });
-    html += `</tr></thead><tbody>`;
-
-    for (let d = 1; d <= 31; d++) {
-        html += `<tr><td><b>${d}</b></td>`;
-        for (let m = 0; m < 12; m++) {
-            const clave = `${anioSeleccionado}-${m}-${d}`;
-            const paginas = habitTrackerData[clave] || 0;
-            let claseRango = "rango-vacio";
-            if (paginas > 0 && paginas <= 10) claseRango = "rango-0-10";
-            else if (paginas <= 20) claseRango = "rango-11-20";
-            else if (paginas <= 30) claseRango = "rango-21-30";
-            else if (paginas <= 40) claseRango = "rango-31-40";
-            else if (paginas <= 50) claseRango = "rango-41-50";
-            else if (paginas <= 80) claseRango = "rango-51-80";
-            else if (paginas <= 100) claseRango = "rango-81-100";
-            else if (paginas > 100) claseRango = "rango-100-plus";
-
-            html += `<td class="celda-tracker ${claseRango}" onclick="registrarPaginasTracker('${clave}')" title="${d} ${meses[m]}: ${paginas} págs"></td>`;
+    
+    let conteoTropes = {};
+    libros.forEach(l => {
+        if (l.tropes && Array.isArray(l.tropes)) {
+            l.tropes.forEach(t => {
+                if (t) {
+                    let limpio = t.trim();
+                    conteoTropes[limpio] = (conteoTropes[limpio] || 0) + 1;
+                }
+            });
         }
-        html += `</tr>`;
-    }
-
-    html += `</tbody></table></div>`;
-    html += `
-        <div class="tracker-leyenda-horizontal">
-            <div class="leyenda-item"><div class="leyenda-color-box rango-0-10"></div> 1-10</div>
-            <div class="leyenda-item"><div class="leyenda-color-box rango-11-20"></div> 11-20</div>
-            <div class="leyenda-item"><div class="leyenda-color-box rango-21-30"></div> 21-30</div>
-            <div class="leyenda-item"><div class="leyenda-color-box rango-31-40"></div> 31-40</div>
-            <div class="leyenda-item"><div class="leyenda-color-box rango-41-50"></div> 41-50</div>
-            <div class="leyenda-item"><div class="leyenda-color-box rango-51-80"></div> 51-80</div>
-            <div class="leyenda-item"><div class="leyenda-color-box rango-81-100"></div> 81-100</div>
-            <div class="leyenda-item"><div class="leyenda-color-box rango-100-plus"></div> 100+</div>
-        </div>
-    </div>`;
-    contenido.innerHTML = html;
-}
-
-function cambiarAnioTracker(a) { cambiarAnioGlobal(a, 'tracker'); }
-
-function registrarPaginasTracker(clave) {
-    const val = prompt("Introduce el número de páginas leídas hoy:", habitTrackerData[clave] || "");
-    if (val !== null) {
-        habitTrackerData[clave] = Number(val) || 0;
-        guardarEnLocalStorage();
-        mostrarTracker();
-    }
-}
-
-// ==========================================
-// VISTA: PRÓXIMOS
-// ==========================================
-function mostrarProximos() {
-    const contenido = document.getElementById("contenido");
-    const proximos = libros.filter(l => l.estado === "Próximo" || l.estado === "Por leer");
-
-    let html = `<h2>Próximas Lecturas / TBR</h2><div class="lista-libros">`;
-
-    if (proximos.length === 0) {
-        html += `<p style="grid-column:1/-1; text-align:center; color:#777; padding:20px;">No tienes lecturas pendientes en tu lista de Próximos.</p>`;
-    } else {
-        proximos.forEach(libro => {
-            const indexOriginal = libros.indexOf(libro);
-            html += `
-                <div class="tarjeta-libro" onclick="verDetalleLibro(${indexOriginal})">
-                    <div class="contenedor-portada">
-                        <img src="${libro.portada || 'https://via.placeholder.com/130x190'}" alt="${libro.titulo}">
-                    </div>
-                    <strong>${libro.titulo}</strong>
-                    <span style="font-size:12px; color:#555;">${libro.autor}</span>
-                    <span class="badge-estado por-leer" style="margin-top:5px;">${libro.estado}</span>
-                </div>
-            `;
-        });
-    }
-
-    html += `</div>`;
-    contenido.innerHTML = html;
-}
-
-// ==========================================
-// VISTA: METAS DE LECTURA
-// ==========================================
-function mostrarMetas() {
-    const contenido = document.getElementById("contenido");
-    let html = `<h2>Metas de Lectura</h2><div class="contenedor-metas">`;
-
-    metas.forEach(meta => {
-        const porcentaje = Math.min(100, Math.round((meta.actual / meta.objetivo) * 100));
-        html += `
-            <div class="meta-item-card">
-                <input type="checkbox" class="meta-checkbox" ${meta.completada ? 'checked' : ''} onchange="toggleMeta(${meta.id})">
-                <div class="meta-info">
-                    <div class="meta-titulo">${meta.titulo}</div>
-                    <div style="font-size:12px; color:#666;">Progreso: ${meta.actual} / ${meta.objetivo} (${porcentaje}%)</div>
-                    <div class="meta-progreso-bar">
-                        <div class="meta-progreso-fill" style="width: ${porcentaje}%;"></div>
-                    </div>
-                </div>
-            </div>
-        `;
     });
 
-    html += `</div>`;
-    contenido.innerHTML = html;
+    let tropesOrdenados = Object.entries(conteoTropes).sort((a, b) => b[1] - a[1]);
+    let top5Mas = tropesOrdenados.slice(0, 5);
+    let top5Menos = [...tropesOrdenados].reverse().slice(0, 5);
+    let maxValor = top5Mas.length > 0 ? top5Mas[0][1] : 1;
+
+    let htmlMas = top5Mas.length > 0 ? top5Mas.map(([t, c]) => {
+        let porcentaje = Math.round((c / maxValor) * 100);
+        return `
+            <div class="grafica-fila">
+                <span class="grafica-label" style="width:130px; text-align:left;" title="${t}">${t}</span>
+                <div class="grafica-bar-bg"><div class="grafica-bar-fill" style="width: ${porcentaje}%; background-color: #5b9bd5;"></div></div>
+                <span class="grafica-val">${c}</span>
+            </div>
+        `;
+    }).join('') : '<p style="font-size:12px; color:#666; text-align:center;">No hay suficientes datos de tropes[cite: 1].</p>';
+
+    let htmlMenos = top5Menos.length > 0 ? top5Menos.map(([t, c]) => {
+        let porcentaje = Math.round((c / maxValor) * 100);
+        return `
+            <div class="grafica-fila">
+                <span class="grafica-label" style="width:130px; text-align:left;" title="${t}">${t}</span>
+                <div class="grafica-bar-bg"><div class="grafica-bar-fill" style="width: ${porcentaje}%; background-color: #f6ad55;"></div></div>
+                <span class="grafica-val">${c}</span>
+            </div>
+        `;
+    }).join('') : '<p style="font-size:12px; color:#666; text-align:center;">No hay suficientes datos de tropes[cite: 1].</p>';
+
+    const totalLeidos = libros.filter(l => l.estado === "Terminado" || l.estado === "Leído").length;
+    const totalPaginas = libros.filter(l => l.estado === "Terminado" || l.estado === "Leído").reduce((acc, l) => acc + (Number(l.paginas) || 0), 0);
+
+    contenido.innerHTML = `
+        <h2>📈 Estadísticas Generales</h2>
+        <div class="panel-destacados-grid" style="margin-bottom:20px;">
+            <div class="card-destacado"><span>Libros Leídos</span><strong>${totalLeidos}</strong></div>
+            <div class="card-destacado"><span>Páginas Totales</span><strong>${totalPaginas}</strong></div>
+            <div class="card-destacado"><span>Total Tropes Únicos</span><strong>${tropesOrdenados.length}</strong></div>
+            <div class="card-destacado"><span>Año Activo</span><strong>${anioSeleccionado}</strong></div>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+            <div class="grafica-contenedor">
+                <h4>🔥 Top 5 Tropes Más Leídos[cite: 1]</h4>
+                <div class="grafica-barras">${htmlMas}</div>
+            </div>
+            <div class="grafica-contenedor">
+                <h4>🧊 Top 5 Tropes Menos Leídos (Por explorar)[cite: 1]</h4>
+                <div class="grafica-barras">${htmlMenos}</div>
+            </div>
+        </div>
+    `;
 }
 
-function toggleMeta(id) {
-    const m = metas.find(x => x.id === id);
-    if (m) {
-        m.completada = !m.completada;
-        guardarEnLocalStorage();
-        mostrarMetas();
-    }
-}
-
-// ==========================================
-// VISTA: CITAS (CON PAGINACIÓN)
-// ==========================================
+// --- CITAS CON PAGINACIÓN (10 POR PÁGINA) ---
 function mostrarCitas() {
     const contenido = document.getElementById("contenido");
-    const totalPaginas = Math.ceil(citas.length / citasPorPagina) || 1;
-    const inicio = (paginaActualCitas - 1) * citasPorPagina;
-    const citasPagina = citas.slice(inicio, inicio + citasPorPagina);
-
-    let html = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-            <h2>Citas Literarias</h2>
-            <label class="btn-tabla-accion" style="background:#5b9bd5; color:white; padding:8px 14px; border-radius:6px; cursor:pointer;">
-                📥 Importar Citas CSV
-                <input type="file" accept=".csv" onchange="importarCitasCSV(event)" style="display:none;">
-            </label>
+    const totalCitas = citas.length;
+    
+    const botonesAccionCitas = `
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <input type="file" id="input-csv-citas" accept=".csv" style="display:none" onchange="importarCitasCSV(event)">
+            <button onclick="document.getElementById('input-csv-citas').click()" class="boton-volver" style="background:#48bb78; color:white; margin:0;">📂 CSV Citas</button>
         </div>
-        <div class="contenedor-citas-planner">
     `;
 
-    if (citasPagina.length === 0) {
-        html += `<p style="text-align:center; color:#777; padding:30px;">No hay citas registradas. Importa tu archivo CSV de citas para cargarlas aquí.</p>`;
-    } else {
-        citasPagina.forEach((c, idx) => {
-            const numCita = inicio + idx + 1;
-            const bgCita = ['#e0fefe', '#ffe0b2', '#f3e5f5', '#e8f5e9', '#fffde7'][idx % 5];
-            html += `
-                <div class="tarjeta-cita-planner">
-                    <div class="cita-metadatos">
-                        <div class="cita-meta-fila">Libro: <span>${c.libro || '---'}</span></div>
-                        <div class="cita-meta-fila">Autor: <span>${c.autor || '---'}</span></div>
-                        <div class="cita-meta-fila">Capítulo: <span>${c.capitulo || '---'}</span></div>
-                        <div class="cita-meta-fila">Página: <span>${c.pagina || '---'}</span></div>
-                    </div>
-                    <div class="cita-caja-texto" style="background-color: ${bgCita};">
-                        <span class="cita-badge-numero">${numCita}</span>
-                        "${c.texto}"
+    if (citas.length === 0) {
+        contenido.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                <h2 style="font-size:24px; font-weight:bold;">CITAS</h2>
+                ${botonesAccionCitas}
+            </div>
+            <p style="text-align:center; color:#666; margin-top:40px;">No tienes citas guardadas todavía.</p>
+        `;
+        return;
+    }
+
+    const totalPaginas = Math.ceil(citas.length / citasPorPagina);
+    if (paginaActualCitas > totalPaginas) paginaActualCitas = totalPaginas;
+    if (paginaActualCitas < 1) paginaActualCitas = 1;
+
+    const inicioSlice = (paginaActualCitas - 1) * citasPorPagina;
+    const finSlice = inicioSlice + citasPorPagina;
+    const citasPaginadas = citas.slice(inicioSlice, finSlice);
+
+    let htmlCitas = citasPaginadas.map(c => {
+        const numLibreria = obtenerNumeroLibroEnLibreria(c.libro);
+        return `
+            <div class="tarjeta-cita-planner">
+                <div class="cita-metadatos">
+                    <div class="cita-meta-fila">LIBRO: <span>${c.libro || '---'}</span></div>
+                    <div class="cita-meta-fila">AUTOR/A: <span>${c.autor || '---'}</span></div>
+                    <div class="cita-meta-fila">CAPÍTULO: <span>${c.capitulo || '---'}</span></div>
+                    <div class="cita-meta-fila">PÁGINA: <span>${c.pagina || '---'}</span></div>
+                    <div class="cita-meta-fila">AÑO: <span>${c.anio || '---'}</span></div>
+                    <div style="margin-top:10px; display:flex; gap:6px;">
+                        <button onclick="eliminarCita(${c.id})" class="btn-tabla-accion" style="background:#f87171; color:white; padding:4px 8px; border-radius:4px;">🗑️ Borrar</button>
                     </div>
                 </div>
-            `;
-        });
-    }
+                <div class="cita-caja-texto" style="background-color: #b5e3fd;">
+                    <div class="cita-badge-numero">${numLibreria}</div>
+                    <blockquote>"${c.texto}"</blockquote>
+                </div>
+            </div>
+        `;
+    }).join('');
 
-    html += `</div>`;
-
-    // Controles de Paginación
+    let botonesPaginacion = "";
     if (totalPaginas > 1) {
-        html += `<div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:25px; flex-wrap:wrap;">`;
-        html += `<button class="btn-anio" ${paginaActualCitas === 1 ? 'disabled style="opacity:0.5;"' : ''} onclick="cambiarPaginaCitas(${paginaActualCitas - 1})">« Ant</button>`;
+        botonesPaginacion = `<div class="selector-anio" style="margin-top:25px;">`;
         for (let p = 1; p <= totalPaginas; p++) {
-            html += `<button class="btn-anio ${paginaActualCitas === p ? 'activo' : ''}" onclick="cambiarPaginaCitas(${p})">${p}</button>`;
+            botonesPaginacion += `<button class="btn-anio ${paginaActualCitas === p ? 'activo' : ''}" onclick="cambiarPaginaCitas(${p})">${p}</button>`;
         }
-        html += `<button class="btn-anio" ${paginaActualCitas === totalPaginas ? 'disabled style="opacity:0.5;"' : ''} onclick="cambiarPaginaCitas(${paginaActualCitas + 1})">Sig »</button>`;
-        html += `</div>`;
+        botonesPaginacion += `</div>`;
     }
 
-    contenido.innerHTML = html;
+    contenido.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <h2 style="font-size:24px; font-weight:bold;">CITAS DE LECTURA</h2>
+            ${botonesAccionCitas}
+        </div>
+        <div style="margin-bottom: 15px; font-size: 13px; color: #555;">Mostrando página ${paginaActualCitas} de ${totalPaginas} (Total de citas: ${totalCitas})[cite: 1]</div>
+        <div class="contenedor-citas-planner">${htmlCitas}</div>
+        ${botonesPaginacion}
+    `;
 }
 
-function cambiarPaginaCitas(p) {
-    paginaActualCitas = p;
+function cambiarPaginaCitas(numPag) {
+    paginaActualCitas = numPag;
     mostrarCitas();
 }
 
-// ==========================================
-// VISTA: AUTORES
-// ==========================================
-function mostrarAutores() {
-    const contenido = document.getElementById("contenido");
-    const autoresSet = new Set();
-    libros.forEach(l => { if (l.autor) autoresSet.add(l.autor.trim()); });
-    const autores = Array.from(autoresSet).sort();
+function importarCitasCSV(event) {
+    const archivo = event.target.files[0];
+    if (!archivo) return;
+    const lector = new FileReader();
+    lector.onload = function(e) {
+        const textoCompleto = e.target.result;
+        const lineas = textoCompleto.split(/\r\n|\n/);
+        let filas = [];
+        let filaActual = [];
+        let dentroDeComillas = false;
+        let bufferCelda = "";
 
-    let html = `<h2>Índice de Autores</h2><div class="autores-index-container"><div class="autores-grid-3cols">`;
+        for (let linea of lineas) {
+            for (let i = 0; i < linea.length; i++) {
+                const char = linea[i];
+                if (char === '"') {
+                    dentroDeComillas = !dentroDeComillas;
+                    bufferCelda += char;
+                } else if (char === ',' && !dentroDeComillas) {
+                    filaActual.push(bufferCelda.trim());
+                    bufferCelda = "";
+                } else {
+                    bufferCelda += char;
+                }
+            }
+            if (!dentroDeComillas) {
+                filaActual.push(bufferCelda.trim());
+                if (filaActual.length > 1 || filaActual[0] !== "") filas.push(filaActual);
+                filaActual = [];
+                bufferCelda = "";
+            } else {
+                bufferCelda += "\n";
+            }
+        }
+        
+        let count = 0;
+        const inicioIndex = filas.length > 0 && filas[0][0].toLowerCase().includes("texto") ? 1 : 0;
+        for (let i = inicioIndex; i < filas.length; i++) {
+            const c = filas[i];
+            if (c.length >= 2 && c[0]) {
+                citas.push({
+                    id: Date.now() + i,
+                    texto: c[0].replace(/^"|"$/g, "").trim(),
+                    libro: (c[1] || "").replace(/^"|"$/g, "").trim(),
+                    autor: (c[2] || "").replace(/^"|"$/g, "").trim(),
+                    capitulo: (c[3] || "").replace(/^"|"$/g, "").trim(),
+                    pagina: (c[4] || "").replace(/^"|"$/g, "").trim(),
+                    anio: (c[5] || "2026").replace(/^"|"$/g, "").trim()
+                });
+                count++;
+            }
+        }
+        guardarEnLocalStorage();
+        alert(`¡Se importaron ${count} citas correctamente!`);
+        mostrarCitas();
+    };
+    lector.readAsText(archivo, 'UTF-8');
+}
 
-    if (autores.length === 0) {
-        html += `<p style="grid-column:1/-1; text-align:center; color:#777;">No hay autores registrados.</p>`;
-    } else {
-        autores.forEach(autor => {
-            const cant = libros.filter(l => l.autor && l.autor.trim() === autor).length;
-            html += `
-                <button class="autor-btn-item" onclick="filtrarPorAutor('${autor.replace(/'/g, "\\'")}')">
-                    ${autor} (${cant})
-                </button>
-            `;
-        });
+function eliminarCita(id) {
+    if (confirm("¿Borrar esta cita?")) {
+        citas = citas.filter(item => item.id !== id);
+        guardarEnLocalStorage();
+        mostrarCitas();
     }
-
-    html += `</div></div>`;
-    contenido.innerHTML = html;
 }
 
-function filtrarPorAutor(autor) {
-    const contenido = document.getElementById("contenido");
-    const librosAutor = libros.filter(l => l.autor && l.autor.trim() === autor);
-
-    let html = `
-        <button class="boton-volver" onclick="mostrarAutores()">← Volver a Autores</button>
-        <h2>Libros de ${autor}</h2>
-        <div class="lista-libros">
-    `;
-
-    librosAutor.forEach(libro => {
-        const indexOriginal = libros.indexOf(libro);
-        html += `
-            <div class="tarjeta-libro" onclick="verDetalleLibro(${indexOriginal})">
-                <div class="contenedor-portada">
-                    <img src="${libro.portada || 'https://via.placeholder.com/130x190'}" alt="${libro.titulo}">
-                </div>
-                <strong>${libro.titulo}</strong>
-                <div class="estrellas">${generarEstrellas(libro.calificacion)}</div>
-            </div>
-        `;
-    });
-
-    html += `</div>`;
-    contenido.innerHTML = html;
-}
-
-// ==========================================
-// VISTA: REGISTRO GENERAL
-// ==========================================
-function mostrarRegistro() {
-    const contenido = document.getElementById("contenido");
-    const librosFiltrados = libros.filter(l => (l.anio || 2026) === anioSeleccionado);
-
-    let html = obtenerSelectorAniosHTML("cambiarAnioRegistro");
-    html += `
-        <h2>Registro de Lecturas (${anioSeleccionado})</h2>
-        <div class="contenedor-registro-planner">
-            <table class="tabla-registro-planner">
-                <thead>
-                    <tr>
-                        <th>N°</th>
-                        <th>Título</th>
-                        <th>Autor</th>
-                        <th>Páginas</th>
-                        <th>Estado</th>
-                        <th>Rating</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-
-    if (librosFiltrados.length === 0) {
-        html += `<tr><td colspan="6" style="text-align:center; padding:20px; color:#888;">Sin datos en ${anioSeleccionado}.</td></tr>`;
-    } else {
-        librosFiltrados.forEach((l, i) => {
-            const indexOriginal = libros.indexOf(l);
-            const claseEst = normalizarClase(l.estado || 'terminado');
-            html += `
-                <tr style="cursor:pointer;" onclick="verDetalleLibro(${indexOriginal})">
-                    <td>${l.numero || i + 1}</td>
-                    <td><b>${l.titulo}</b></td>
-                    <td>${l.autor}</td>
-                    <td>${l.paginas || '---'}</td>
-                    <td><span class="badge-estado ${claseEst}">${l.estado || 'Terminado'}</span></td>
-                    <td>${generarEstrellas(l.calificacion)}</td>
-                </tr>
-            `;
-        });
-    }
-
-    html += `</tbody></table></div>`;
-    contenido.innerHTML = html;
-}
-
-function cambiarAnioRegistro(a) { cambiarAnioGlobal(a, 'registro'); }
-
-// ==========================================
-// VISTA: ESTADÍSTICAS Y GRÁFICAS
-// ==========================================
-function mostrarEstadisticas() {
-    const contenido = document.getElementById("contenido");
-    const librosAnio = libros.filter(l => (l.anio || 2026) === anioSeleccionado && (l.estado === "Terminado" || l.estado === "Leído"));
-
-    const totalLibros = librosAnio.length;
-    const totalPaginas = librosAnio.reduce((acc, l) => acc + (l.paginas || 0), 0);
-    const promedioPaginas = totalLibros ? Math.round(totalPaginas / totalLibros) : 0;
-
-    let html = obtenerSelectorAniosHTML("cambiarAnioEstadisticas");
-    html += `
-        <h2>Estadísticas de Lectura (${anioSeleccionado})</h2>
-        <div class="panel-destacados-grid">
-            <div class="card-destacado"><span>Libros Leídos</span><strong>${totalLibros}</strong></div>
-            <div class="card-destacado"><span>Total Páginas</span><strong>${totalPaginas}</strong></div>
-            <div class="card-destacado"><span>Promedio Págs</span><strong>${promedioPaginas}</strong></div>
-            <div class="card-destacado"><span>Año</span><strong>${anioSeleccionado}</strong></div>
-        </div>
-
-        <div class="grafica-contenedor">
-            <h4>Calificación en Estrellas</h4>
-            <div class="grafica-barras">
-    `;
-
-    for (let est = 5; est >= 1; est--) {
-        const cant = librosAnio.filter(l => (l.calificacion || 0) === est).length;
-        const porc = totalLibros ? Math.round((cant / totalLibros) * 100) : 0;
-        html += `
-            <div class="grafica-fila">
-                <span class="grafica-label">${"★".repeat(est)}</span>
-                <div class="grafica-bar-bg">
-                    <div class="grafica-bar-fill" style="width:${porc}%; background-color:#5b9bd5;"></div>
-                </div>
-                <span class="grafica-val">${cant}</span>
-            </div>
-        `;
-    }
-
-    html += `</div></div>`;
-    contenido.innerHTML = html;
-}
-
-function cambiarAnioEstadisticas(a) { cambiarAnioGlobal(a, 'estadisticas'); }
-
-// ==========================================
-// VISTA: ADAPTACIONES
-// ==========================================
-function mostrarAdaptaciones() {
-    const contenido = document.getElementById("contenido");
-    let html = `<h2>Adaptaciones Cinematográficas</h2>`;
-
-    if (adaptaciones.length === 0) {
-        html += `<p style="text-align:center; color:#777; padding:30px;">No hay adaptaciones guardadas.</p>`;
-    } else {
-        adaptaciones.forEach(ad => {
-            html += `
-                <div class="adaptacion-card-detalle">
-                    <div class="adaptacion-grid-comparativa">
-                        <div class="adaptacion-columna-media">
-                            <h3>📖 Libro</h3>
-                            <img class="adaptacion-poster" src="${ad.portadaLibro || 'https://via.placeholder.com/170x250'}" alt="Libro">
-                            <div class="adaptacion-info-detalles">
-                                <div class="adaptacion-info-fila">Título: <span>${ad.tituloLibro}</span></div>
-                                <div class="adaptacion-info-fila">Rating: <span>${generarEstrellas(ad.ratingLibro)}</span></div>
-                            </div>
-                        </div>
-                        <div class="adaptacion-divisor-vertical"></div>
-                        <div class="adaptacion-columna-media">
-                            <h3>🎬 Película / Serie</h3>
-                            <img class="adaptacion-poster" src="${ad.posterPeli || 'https://via.placeholder.com/170x250'}" alt="Película">
-                            <div class="adaptacion-info-detalles">
-                                <div class="adaptacion-info-fila">Título: <span>${ad.tituloPeli}</span></div>
-                                <div class="adaptacion-info-fila">Rating: <span>${generarEstrellas(ad.ratingPeli)}</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-    }
-
-    contenido.innerHTML = html;
-}
-
-// ==========================================
-// VISTA: RECAP ANUAL
-// ==========================================
-function mostrarRecap() {
-    const contenido = document.getElementById("contenido");
-    const librosAnio = libros.filter(l => (l.anio || 2026) === anioSeleccionado && (l.estado === "Terminado" || l.estado === "Leído"));
-    const top3 = [...librosAnio].sort((a, b) => (b.calificacion || 0) - (a.calificacion || 0)).slice(0, 3);
-    const totalPags = librosAnio.reduce((acc, l) => acc + (l.paginas || 0), 0);
-
-    let html = obtenerSelectorAniosHTML("cambiarAnioRecap");
-    html += `
-        <div style="text-align:center;">
-            <h2>Recap de Lectura (${anioSeleccionado})</h2>
-            <p style="color:#555; margin-bottom:15px;">Tus mejores momentos literarios del año</p>
-        </div>
-        <div class="recap-top3-contenedor">
-    `;
-
-    top3.forEach((l, idx) => {
-        html += `
-            <div class="recap-top3-card">
-                <span style="font-weight:bold; font-size:14px; color:#5b9bd5;">#${idx + 1} Top</span>
-                <img src="${l.portada}" alt="${l.titulo}">
-                <strong>${l.titulo}</strong>
-                <span>${generarEstrellas(l.calificacion)}</span>
-            </div>
-        `;
-    });
-
-    html += `
-        </div>
-        <div class="recap-stats-centradas">
-            <div class="recap-circulo-stat">
-                <div class="recap-circulo-badge">${librosAnio.length}</div>
-                <span style="font-weight:bold; font-size:12px;">Libros Leídos</span>
-            </div>
-            <div class="recap-circulo-stat">
-                <div class="recap-circulo-badge">${totalPags}</div>
-                <span style="font-weight:bold; font-size:12px;">Páginas Totales</span>
-            </div>
-        </div>
-    `;
-
-    contenido.innerHTML = html;
-}
-
-function cambiarAnioRecap(a) { cambiarAnioGlobal(a, 'recap'); }
+// Inicialización
+document.addEventListener("DOMContentLoaded", () => {
+    mostrarPagina('inicio');
+});
