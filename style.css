@@ -199,6 +199,7 @@ body {
     border-radius: 4px;
     margin-top: 3px;
 }
+
 .badge-idioma.espanol { background-color: #bee3f8; color: #2b6cb0; }
 .badge-idioma.ingles { background-color: #e9d8fd; color: #6b46c1; }
 
@@ -206,20 +207,87 @@ body {
 .vista-resena { display: flex; flex-direction: column; gap: 15px; }
 .resena-contenido { display: flex; gap: 25px; align-items: flex-start; }
 .columna-izquierda-resena { width: 220px; display: flex; flex-direction: column; align-items: center; }
-.caja-notas { background-color: #8c9eff; width: 100%; padding: 15px; margin-top: 15px; border-radius: 4px; color: #000; font-size: 13px; text-align: left; }
+
+.caja-notas {
+    background-color: #8c9eff;
+    width: 100%;
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 4px;
+    color: #000;
+    font-size: 13px;
+    text-align: left;
+}
+
 .caja-notas h4 { text-transform: uppercase; font-size: 14px; margin-bottom: 8px; }
 .caja-notas ul { list-style-type: disc; padding-left: 18px; line-height: 1.6; }
-.columna-derecha-resena { flex: 1; background-image: repeating-linear-gradient(transparent, transparent 27px, #708090 28px); line-height: 28px; font-size: 14px; padding: 0 5px; }
+
+.columna-derecha-resena {
+    flex: 1;
+    background-image: repeating-linear-gradient(transparent, transparent 27px, #708090 28px);
+    line-height: 28px;
+    font-size: 14px;
+    padding: 0 5px;
+}
+
 .texto-sinopsis { text-align: justify; margin-bottom: 15px; }
-.metadatos-inferior { border-top: 2px solid #333; padding-top: 8px; margin-top: 15px; font-size: 13px; font-weight: bold; display: flex; flex-direction: column; gap: 6px; background: #e6f4fc; }
+
+.metadatos-inferior {
+    border-top: 2px solid #333;
+    padding-top: 8px;
+    margin-top: 15px;
+    font-size: 13px;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #e6f4fc;
+}
+
 .metadatos-row { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 4px; }
 
 /* ESTANTERÍA */
 .estanteria-contenedor { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; padding: 10px; }
-.repisa-madera { border-bottom: 12px solid #8d6e63; box-shadow: 0 4px 6px rgba(0,0,0,0.15); display: flex; align-items: flex-end; padding: 0 15px 2px 15px; gap: 6px; min-height: 180px; position: relative; flex-wrap: wrap; }
-.libro-tomo { border: 1.5px solid #2c3e50; border-radius: 4px 4px 0 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s ease; box-shadow: inset -2px 0 4px rgba(0,0,0,0.15), 1px 2px 4px rgba(0,0,0,0.1); padding: 2px; }
+.repisa-madera {
+    border-bottom: 12px solid #8d6e63;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: flex-end;
+    padding: 0 15px 2px 15px;
+    gap: 6px;
+    min-height: 180px;
+    position: relative;
+    flex-wrap: wrap;
+}
+
+.libro-tomo {
+    border: 1.5px solid #2c3e50;
+    border-radius: 4px 4px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    box-shadow: inset -2px 0 4px rgba(0,0,0,0.15), 1px 2px 4px rgba(0,0,0,0.1);
+    padding: 2px;
+}
+
 .libro-tomo:hover { transform: translateY(-5px); }
-.libro-tomo span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; font-weight: bold; color: #1a1a1a; text-transform: uppercase; text-align: center; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-height: 95%; }
+
+.libro-tomo span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 11px;
+    font-weight: bold;
+    color: #1a1a1a;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 95%;
+}
 
 /* FAVORITO DEL MES */
 .contenedor-favoritos { max-width: 850px; margin: 0 auto; }
@@ -227,7 +295,22 @@ body {
 .tarjeta-mes-fav { background: transparent; display: flex; flex-direction: column; align-items: center; }
 .nombre-mes-cursiva { font-family: 'Caveat', cursive, serif; font-size: 24px; color: #2c3e50; margin-bottom: 8px; text-align: center; }
 .slot-portadas { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-.portada-slot { width: 100%; height: 125px; background-color: #b5c4f6; border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; }
+
+.portada-slot {
+    width: 100%;
+    height: 125px;
+    background-color: #b5c4f6;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border: 1px solid rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
 .portada-slot:hover { transform: scale(1.02); }
 .portada-slot img { width: 100%; height: 100%; object-fit: cover; }
 .portada-slot span { font-size: 11px; color: #ffffff; font-weight: bold; text-align: center; padding: 0 4px; }
@@ -241,7 +324,19 @@ body {
 .th-mes-texto { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; margin: 0 auto; font-size: 11px; letter-spacing: 0.5px; }
 .celda-tracker { background-color: #ffffff; cursor: pointer; transition: filter 0.2s; }
 .celda-tracker:hover { filter: brightness(0.9); }
-.tracker-leyenda-horizontal { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; background: #ffffff; border: 1px solid #cce4f7; border-radius: 10px; padding: 10px 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+
+.tracker-leyenda-horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    background: #ffffff;
+    border: 1px solid #cce4f7;
+    border-radius: 10px;
+    padding: 10px 18px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
 .leyenda-item { display: flex; align-items: center; gap: 6px; font-size: 11px; }
 .leyenda-color-box { width: 16px; height: 12px; border: 1px solid #2c3e50; border-radius: 2px; }
 .rango-0-10 { background-color: #fef08a; }
@@ -310,7 +405,6 @@ body {
 .badge-estado.terminado, .badge-estado.leido { background-color: #a3e4d7; color: #117864; }
 .badge-estado.leyendo { background-color: #f9e79f; color: #7d6608; }
 .badge-estado.por-leer, .badge-estado.proximo { background-color: #f5b7b1; color: #78281f; }
-
 .btn-tabla-accion { border: none; background: transparent; cursor: pointer; font-size: 14px; padding: 2px 5px; border-radius: 4px; }
 .btn-tabla-accion:hover { background-color: rgba(0,0,0,0.08); }
 
@@ -337,11 +431,9 @@ body {
 .formulario-libro label { font-weight: bold; font-size: 13px; }
 .formulario-libro input, .formulario-libro select, .formulario-libro textarea { padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; }
 .formulario-libro button { background-color: #5b9bd5; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-
 .selector-anio { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
 .btn-anio { padding: 6px 14px; border: 1px solid #bce1f7; background: #ffffff; border-radius: 6px; cursor: pointer; }
 .btn-anio.activo { background: #5b9bd5; color: white; font-weight: bold; }
-
 .grilla-meses { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
 .tarjeta-mes { background: #d1effe; border: 1px solid #bce1f7; border-radius: 8px; padding: 14px; text-align: center; cursor: pointer; transition: transform 0.2s; }
 .tarjeta-mes:hover { transform: translateY(-3px); }
@@ -438,17 +530,4 @@ body {
     .recap-top3-contenedor { flex-wrap: wrap; }
     .tabla-registro-planner, .tabla-comparativa-meses { font-size: 11px; }
     .tabla-registro-planner th, .tabla-registro-planner td { padding: 6px 4px; }
-}
-
-.cita-caja-texto {
-    flex: 1;
-    border-radius: 16px;
-    padding: 15px 20px; /* Reducimos el relleno superior/inferior a 15px */
-    position: relative;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-    color: #1a202c;
-    font-size: 15px;
-    line-height: 1.5;
-    min-height: auto; /* Se adapta dinámicamente al tamaño real del texto */
-    white-space: pre-wrap;
 }
