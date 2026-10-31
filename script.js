@@ -17,7 +17,7 @@ let metas = load('metas', [
 let anioSeleccionado = ANIO_ACTUAL, vistaActual = 'inicio', modoTropes = 'mas';
 let filtros = { q: '', est: '', trope: '' };
 const pag = { citas: 1, registro: 1, proximos: 1, autores: 1, adaptaciones: 1 };
-const POR_PAG = { citas: 10, registro: 15, proximos: 12, autores: 18, adaptaciones: 3 };
+const POR_PAG = { citas: 10, registro: 15, proximos: 12, autores: 18, adaptaciones: 12 };
 
 function guardarEnLocalStorage() {
   [['libros', libros], ['citas', citas], ['adaptaciones', adaptaciones], ['habitTrackerData', habitTrackerData], ['metas', metas], ['favoritosManual', favManual]]
@@ -37,8 +37,8 @@ function parseFecha(s) {
 }
 const fmtFecha = s => { const d = parseFecha(s); return d ? `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}` : (s || ''); };
 const fechaLibro = l => parseFecha(l.final) || parseFecha(l.inicio);
-const anioDe = l => { const d = fechaLibro(l); return d ? d.getFullYear() : (Number(l.anio) || null); };
-const mesDe = l => { const d = fechaLibro(l); return d ? d.getMonth() : (l.mes ? MESES.indexOf(norm(l.mes)) : -1); };
+const anioDe = l => Number(l.anio) || (fechaLibro(l) ? fechaLibro(l).getFullYear() : ANIO_ACTUAL);
+const mesDe = l => { const i = l.mes ? MESES.indexOf(norm(l.mes)) : -1; if (i >= 0) return i; const d = fechaLibro(l); return d ? d.getMonth() : -1; };
 const dias = l => { const a = parseFecha(l.inicio), b = parseFecha(l.final); return a && b ? Math.round(Math.abs(b - a) / 864e5) + 1 : null; };
 
 // ---- estados / tropes ----
@@ -98,9 +98,10 @@ function irPagina(k, n) { pag[k] = n; renderVista(); $('contenido').scrollTop = 
 const SIN_PORTADA = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="130" height="190"><rect width="100%" height="100%" fill="#b5c4f6"/><text x="50%" y="55%" text-anchor="middle" font-size="40">📖</text></svg>');
 const img = (u, alt) => `<img src="${esc(u || SIN_PORTADA)}" alt="${esc(alt)}" onerror="this.onerror=null;this.src='${SIN_PORTADA}'">`;
 const idCl = l => norm(l.idioma || 'espanol').includes('ing') ? 'ingles' : 'espanol';
-function generarEstrellas(r) {
-  const n = Math.round(Number(r) || 0); return `<span style="color:#f39c12;font-size:18px">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</span>`;
+function generarEstrellas(r, inactivo = false) {
+  const n = Math.round(Number(r) || 0); return `<span style="color:${inactivo ? '#e53e3e' : '#f39c12'};font-size:18px">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</span>`;
 }
+const generarEstrellasGrandes = (r, inactivo = false) => { const n = Math.round(Number(r) || 0); return `<span style="color:${inactivo ? '#e53e3e' : '#f39c12'};font-size:24px;letter-spacing:2px">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</span>`; };
 const PAL = ['#4fa8eb', '#f5a623', '#e91e63', '#50e3c2', '#9013fe', '#7ed321', '#ff7675', '#4a90e2', '#f8c51c', '#bd10e0', '#26a69a', '#fd79a8'];
 function barras(titulo, filas, lw = 70) {
   if (!filas.length) return `<div class="grafica-contenedor"><h4>${titulo}</h4><p class="vacio" style="margin:10px">Sin datos</p></div>`;
@@ -164,7 +165,7 @@ function importarLibros(ev) {
         personaje1: g('personaje1'), personaje2: g('personaje2'), tropes: parseTropes(g('trope')), idioma: g('idioma') || 'Español',
         formato: g('formato'), saga: g('saga'), portada: g('portada'), sinopsis: g('sinopsis'), notes: g('notes')
       };
-      l.estado = normEstado(g('estado'), l); libros.push(l); n++;
+      l.estado = normEstado(g('estado'), l); const fd = fechaLibro(l); l.anio = fd ? fd.getFullYear() : ANIO_ACTUAL; l.mes = fd ? MESES[fd.getMonth()] : ''; libros.push(l); n++;
     });
     guardarEnLocalStorage(); alert(`${n} libro(s) importado(s)${om ? `, ${om} omitido(s) por duplicados` : ''}.`); renderVista();
   };
@@ -246,31 +247,38 @@ function eliminarLibro(id) {
   const l = libros.find(x => x.id === id);
   if (l && confirm(`¿Borrar "${l.titulo}"?`)) { libros = libros.filter(x => x.id !== id); guardarEnLocalStorage(); renderVista(); }
 }
+function autoFecha() {
+  const d = parseFecha($('f-final').value) || parseFecha($('f-inicio').value);
+  if (d) { $('f-anio').value = d.getFullYear(); $('f-mes').value = MESES[d.getMonth()]; }
+}
 function formLibro(id, estadoDef) {
   const ex = libros.find(x => x.id === id);
-  const l = ex || { estado: estadoDef || 'Terminado', rating: 0, idioma: 'Español', formato: 'Físico' };
-  const inp = (lab, n, v, ph = '') => `<label>${lab}</label><input id="f-${n}" value="${esc(v)}" placeholder="${ph}">`;
+  const l = ex || { estado: estadoDef || 'Terminado', rating: 0, idioma: 'Español', formato: 'Físico', anio: ANIO_ACTUAL };
+  const mAct = ex ? Math.max(0, mesDe(l)) : new Date().getMonth();
+  const inp = (lab, n, v, ph = '', ex2 = '') => `<label>${lab}</label><input id="f-${n}" value="${esc(v)}" placeholder="${ph}" ${ex2}>`;
   const sel = (lab, n, ops, v) => { if (v && !ops.includes(v)) ops = [...ops, v]; return `<label>${lab}</label><select id="f-${n}">${ops.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`; };
-  $('contenido').innerHTML = `<button class="boton-volver" onclick="renderVista()">← Volver</button><h2>${ex ? '✏️ Editar libro' : '📚 Nuevo libro'}</h2>
+  $('contenido').innerHTML = `<button class="boton-volver" onclick="renderVista()">← Volver</button><h2>${ex ? '✏️ Editar libro' : '📝 Registrar libro'}</h2>
     <form id="form-libro" class="formulario-libro">
       ${inp('Título *', 'titulo', l.titulo || '')}${inp('Autor/a *', 'autor', l.autor || '')}${inp('Páginas', 'paginas', l.paginas || '')}
-      ${inp('Inicio (dd/mm/aaaa)', 'inicio', l.inicio || '')}${inp('Final (dd/mm/aaaa)', 'final', l.final || '')}
+      ${inp('Inicio', 'inicio', l.inicio || '', 'DD/MM/AAAA', 'oninput="autoFecha()"')}${inp('Final', 'final', l.final || '', 'DD/MM/AAAA', 'oninput="autoFecha()"')}
+      <div style="display:flex;gap:10px"><div style="flex:1"><label>Año</label><input type="number" id="f-anio" value="${l.anio || ANIO_ACTUAL}"></div>
+      <div style="flex:1"><label>Mes</label><select id="f-mes">${MESES.map((m, i) => `<option value="${m}" ${i === mAct ? 'selected' : ''}>${cap(m)}</option>`).join('')}</select></div></div>
       ${sel('Estado', 'estado', ['Terminado', 'Leyendo', 'Próximo', 'Abandonado'], l.estado)}
-      <label>Rating (0-5)</label><select id="f-rating">${[0, 1, 2, 3, 4, 5].map(n => `<option ${n === Math.round(+l.rating || 0) ? 'selected' : ''}>${n}</option>`).join('')}</select>
+      <label>Calificación</label><select id="f-rating">${[5, 4, 3, 2, 1, 0].map(n => `<option value="${n}" ${n === Math.round(+l.rating || 0) ? 'selected' : ''}>${n ? '★'.repeat(n) : 'Sin calificar'}</option>`).join('')}</select>
       ${inp('Personaje 1', 'personaje1', l.personaje1 || '')}${inp('Personaje 2', 'personaje2', l.personaje2 || '')}
       <label>Tropes (separados por coma)</label><textarea id="f-tropes" rows="2" placeholder="enemies to lovers, slow burn">${esc(tropesDe(l).join(', '))}</textarea>
       ${sel('Idioma', 'idioma', ['Español', 'Inglés', 'Portugués', 'Francés'], l.idioma)}${sel('Formato', 'formato', ['Físico', 'Ebook', 'Audiolibro'], l.formato)}
-      ${inp('Saga', 'saga', l.saga || '')}${inp('Portada (URL)', 'portada', l.portada || '')}
-      <label>Sinopsis</label><textarea id="f-sinopsis" rows="4">${esc(l.sinopsis || '')}</textarea>
+      ${inp('Saga', 'saga', l.saga || '')}${inp('Portada (URL o ruta)', 'portada', l.portada || '', 'imagenes/portada.jpg o URL')}
+      <label>Sinopsis</label><textarea id="f-sinopsis" rows="5">${esc(l.sinopsis || '')}</textarea>
       <label>Notas / opiniones</label><textarea id="f-notes" rows="4">${esc(l.notes || '')}</textarea>
       <button type="submit">Guardar</button></form>`;
   $('form-libro').onsubmit = e => {
     e.preventDefault(); const g = n => $('f-' + n).value.trim();
     if (!g('titulo')) return alert('El título es obligatorio.');
-    const d = { titulo: g('titulo'), autor: g('autor'), paginas: Number(g('paginas')) || '', inicio: fmtFecha(g('inicio')), final: fmtFecha(g('final')), estado: g('estado'), rating: Number(g('rating')) || 0,
+    const d = { titulo: g('titulo'), autor: g('autor'), paginas: Number(g('paginas')) || '', inicio: fmtFecha(g('inicio')), final: fmtFecha(g('final')), anio: Number(g('anio')) || ANIO_ACTUAL, mes: g('mes'), estado: g('estado'), rating: Number(g('rating')) || 0,
       personaje1: g('personaje1'), personaje2: g('personaje2'), tropes: parseTropes(g('tropes')), idioma: g('idioma'), formato: g('formato'), saga: g('saga'), portada: g('portada'), sinopsis: g('sinopsis'), notes: g('notes') };
     if (ex) Object.assign(ex, d); else libros.push({ id: nuevoId(), numero: siguienteNumero(), ...d });
-    guardarEnLocalStorage(); renderVista();
+    guardarEnLocalStorage(); alert('¡Guardado!'); renderVista();
   };
 }
 
@@ -287,7 +295,7 @@ function mostrarProximos() {
 function marcarComoTerminado(id) {
   const l = libros.find(x => x.id === id);
   if (l && confirm(`¿Marcar "${l.titulo}" como Terminado? Se usará la fecha de hoy como final si no tiene.`)) {
-    l.estado = 'Terminado'; if (!parseFecha(l.final)) l.final = fmtFecha(new Date().toLocaleDateString('en-CA'));
+    l.estado = 'Terminado'; if (!parseFecha(l.final)) l.final = fmtFecha(new Date().toLocaleDateString('en-CA')); const fd = parseFecha(l.final); l.anio = fd.getFullYear(); l.mes = MESES[fd.getMonth()];
     guardarEnLocalStorage(); renderVista();
   }
 }
@@ -445,7 +453,7 @@ function formCita(id) {
   $('contenido').innerHTML = `<button class="boton-volver" onclick="mostrarCitas()">← Volver</button><h2>${id ? '✏️ Editar cita' : '💬 Nueva cita'}</h2>
     <form id="form-cita" class="formulario-libro"><label>Texto *</label><textarea id="c-texto" rows="5" required>${esc(c.texto || '')}</textarea>
     <label>Libro</label><input id="c-libro" list="dl-libros" value="${esc(c.libro || '')}"><datalist id="dl-libros">${libros.map(l => `<option value="${esc(l.titulo)}">`).join('')}</datalist>
-    ${inp('Autor/a', 'autor', c.autor)}${inp('Capítulo', 'capitulo', c.capitulo)}${inp('Página', 'pagina', c.pagina)}${inp('Año', 'anio', c.anio || ANIO_ACTUAL)}${inp('Fecha', 'fecha', c.fecha)}<button type="submit">Guardar</button></form>`;
+    ${inp('Autor/a', 'autor', c.autor)}${inp('Capítulo', 'capitulo', c.capitulo)}${inp('Página', 'pagina', c.pagina)}${inp('Año', 'anio', c.anio || ANIO_ACTUAL)}${inp('Fecha', 'fecha', c.fecha || (id ? '' : new Date().toLocaleDateString('es-ES')))}<button type="submit">Guardar</button></form>`;
   $('c-libro').onchange = () => { const l = libros.find(x => norm(x.titulo) === norm($('c-libro').value)); if (l && !$('c-autor').value) $('c-autor').value = l.autor; };
   $('form-cita').onsubmit = e => {
     e.preventDefault(); const g = n => $('c-' + n).value.trim();
@@ -485,87 +493,123 @@ function abrirAutor(enc) {
     <div class="lista-libros">${L.map(l => tarjeta(l)).join('')}</div>`;
 }
 
-// ============ REGISTRO (año + estado, paginado) ============
-let filtroEstado = '';
+// ============ REGISTRO (por año, paginado) ============
 function mostrarRegistro() {
-  const L = delAnio(libros, anioSeleccionado).filter(l => !filtroEstado || l.estado === filtroEstado), T = L.filter(esLeido);
-  const cal = T.filter(l => +l.rating > 0), ds = T.map(dias).filter(Boolean);
-  const p = paginar(L, 'registro');
-  const filas = p.items.map(l => `<tr><td>${l.numero || ''}</td><td style="text-align:left;cursor:pointer" onclick="verResenaLibro(${l.id})"><b>${esc(l.titulo)}</b></td><td>${esc(l.autor)}</td><td>${l.paginas || ''}</td><td>${l.inicio || ''}</td><td>${l.final || ''}</td>
-    <td>${dias(l) || ''}</td><td><span class="badge-estado ${esLeido(l) ? 'terminado' : esProximo(l) ? 'proximo' : 'leyendo'}">${esc(l.estado)}</span></td><td>${generarEstrellas(l.rating)}</td>
-    <td><button class="btn-tabla-accion" onclick="formLibro(${l.id})">✏️</button><button class="btn-tabla-accion" onclick="eliminarLibro(${l.id})">🗑️</button></td></tr>`).join('');
-  $('contenido').innerHTML = `<div class="contenedor-registro-planner"><div class="cabecera-vista"><h2>📝 Registro</h2><div class="acciones">${BTN_NUEVO}${BTN_IMPORTAR}</div></div>${selectorAnios(true)}
-    <div class="barra-filtros"><select onchange="filtroEstado=this.value;pag.registro=1;mostrarRegistro()"><option value="">Todos los estados</option>${['Terminado', 'Leyendo', 'Próximo', 'Abandonado'].map(s => `<option ${filtroEstado === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
-    <div class="panel-destacados-grid"><div class="card-destacado"><span>Registros</span><strong>${L.length}</strong></div><div class="card-destacado"><span>Páginas leídas</span><strong>${T.reduce((s, l) => s + (+l.paginas || 0), 0)}</strong></div>
-    <div class="card-destacado"><span>Rating promedio</span><strong>${cal.length ? (cal.reduce((s, l) => s + +l.rating, 0) / cal.length).toFixed(2) : '—'}</strong></div><div class="card-destacado"><span>Días por libro</span><strong>${ds.length ? Math.round(ds.reduce((a, b) => a + b, 0) / ds.length) : '—'}</strong></div></div>
-    <div class="tabla-wrapper"><table class="tabla-registro-planner"><thead><tr><th>#</th><th>Título</th><th>Autor/a</th><th>Págs</th><th>Inicio</th><th>Final</th><th>Días</th><th>Estado</th><th>Rating</th><th></th></tr></thead><tbody>${filas || '<tr><td colspan="10">Sin registros</td></tr>'}</tbody></table></div>${p.html}</div>`;
+  const L = delAnio(libros, anioSeleccionado).filter(esLeido), p = paginar(L, 'registro');
+  const filas = p.items.map(l => { const d = dias(l); return `<tr>
+    <td><span class="badge-estado terminado">${esc(l.estado)}</span></td>
+    <td style="text-align:left;cursor:pointer" onclick="verResenaLibro(${l.id})"><b>${esc(l.titulo)}</b></td><td style="text-align:left">${esc(l.autor)}</td>
+    <td>${l.inicio || '---'}</td><td>${l.final || '---'}</td><td style="font-weight:bold;color:#319795">${d ? d + ' días' : '---'}</td><td>${generarEstrellas(l.rating)}</td>
+    <td><button class="btn-tabla-accion" onclick="formLibro(${l.id})" title="Editar">✏️</button><button class="btn-tabla-accion" onclick="eliminarLibro(${l.id})" title="Borrar">🗑️</button></td></tr>`; }).join('')
+    || '<tr><td colspan="8" style="padding:15px;color:#777">Sin libros terminados.</td></tr>';
+  $('contenido').innerHTML = `<div class="contenedor-registro-planner"><h2 style="text-align:center;margin-bottom:5px">REGISTRO DE LECTURAS (${anioSeleccionado === 'todos' ? 'todos los años' : anioSeleccionado})</h2>${selectorAnios(true)}
+    <div class="tabla-wrapper"><table class="tabla-registro-planner"><thead><tr><th>Estado</th><th>Título</th><th>Autor</th><th>Inicio</th><th>Final</th><th>Días</th><th>Puntaje</th><th>Acciones</th></tr></thead><tbody>${filas}</tbody></table></div>${p.html}
+    <div class="acciones" style="justify-content:center;margin-top:20px">${BTN_NUEVO}${BTN_IMPORTAR}<button onclick="vaciarTodosLosDatos()" class="boton-volver btn-rojo" style="margin:0">🗑️ Vaciar Todo</button></div></div>`;
 }
 
 // ============ ESTADÍSTICAS ============
-function statsTropes(T) {
+function statsTropes(T) {   // cada trope se cuenta POR SEPARADO
   const m = new Map();
   T.forEach(l => { const v = new Set(); tropesDe(l).forEach(t => { const k = norm(t); if (!k || v.has(k)) return; v.add(k); const o = m.get(k) || { n: t, c: 0, s: 0, r: 0 }; o.c++; if (+l.rating > 0) { o.s += +l.rating; o.r++; } m.set(k, o); }); });
   return [...m.values()];
 }
 function mostrarEstadisticas() {
-  const a = anioSeleccionado, T = delAnio(libros, a).filter(esLeido), cal = T.filter(l => +l.rating > 0);
-  const pags = l => +l.paginas || 0, ds = T.map(dias).filter(Boolean);
+  const a = anioSeleccionado, Lx = delAnio(libros, a), T = Lx.filter(esLeido), Pr = Lx.filter(esProximo), cal = T.filter(l => +l.rating > 0), pags = l => +l.paginas || 0;
   const cuenta = (arr, fn) => { const m = {}; arr.forEach(x => { const k = fn(x) || '—'; m[k] = (m[k] || 0) + 1; }); return Object.entries(m).sort((x, y) => y[1] - x[1]); };
-  const largo = [...T].sort((x, y) => pags(y) - pags(x))[0], mejor = [...cal].sort((x, y) => y.rating - x.rating)[0], autor = cuenta(T, l => l.autor)[0];
+  const ds = T.map(dias).filter(Boolean), largo = [...T].sort((x, y) => pags(y) - pags(x))[0], autor = cuenta(T, l => l.autor)[0];
+  const mesTop = cuenta(T.filter(l => mesDe(l) >= 0), l => MESES[mesDe(l)])[0], mejor = [...cal].sort((x, y) => y.rating - x.rating)[0];
   const card = (t, v) => `<div class="card-destacado"><span>${t}</span><strong>${v}</strong></div>`;
   const porPeriodo = a === 'todos' ? [...aniosDisponibles()].reverse().map(y => ({ l: String(y), T: T.filter(l => anioDe(l) === y) })) : MESES.map((m, i) => ({ l: cap(m).slice(0, 3), T: T.filter(l => mesDe(l) === i) }));
-  // Tropes: cada trope se cuenta por separado
   const tr = statsTropes(T).sort(modoTropes === 'mas' ? (x, y) => y.c - x.c || x.n.localeCompare(y.n) : (x, y) => x.c - y.c || x.n.localeCompare(y.n));
   const tb = (m, t) => `<button class="btn-anio ${modoTropes === m ? 'activo' : ''}" onclick="modoTropes='${m}';mostrarEstadisticas()">${t}</button>`;
-  let comp = '';
-  if (a !== 'todos') {
-    const P = delAnio(libros, a - 1).filter(esLeido);
-    comp = `<div class="tabla-wrapper"><table class="tabla-comparativa-meses"><thead><tr><th>Mes</th><th>Libros ${a}</th><th>Libros ${a - 1}</th><th>Págs ${a}</th><th>Págs ${a - 1}</th></tr></thead><tbody>${MESES.map((m, i) => {
-      const x = T.filter(l => mesDe(l) === i), y = P.filter(l => mesDe(l) === i); return `<tr><td>${cap(m)}</td><td>${x.length}</td><td>${y.length}</td><td>${x.reduce((s, l) => s + pags(l), 0)}</td><td>${y.reduce((s, l) => s + pags(l), 0)}</td></tr>`;
-    }).join('')}</tbody></table></div>`;
-  }
-  $('contenido').innerHTML = `<div class="contenedor-registro-planner"><h2>📈 Estadísticas ${a === 'todos' ? '(todos los años)' : a}</h2>${selectorAnios(true)}
-    <div class="panel-destacados-grid">${card('Libros leídos', T.length)}${card('Páginas', T.reduce((s, l) => s + pags(l), 0))}${card('Rating promedio', cal.length ? (cal.reduce((s, l) => s + +l.rating, 0) / cal.length).toFixed(2) + ' ★' : '—')}${card('Días por libro', ds.length ? Math.round(ds.reduce((x, y) => x + y, 0) / ds.length) : '—')}
-    ${card('Más largo', largo ? esc(largo.titulo) : '—')}${card('Mejor calificado', mejor ? esc(mejor.titulo) : '—')}${card('Autor/a top', autor ? esc(autor[0]) : '—')}${card('Mes más lector', a === 'todos' ? '—' : (() => { const b = [...porPeriodo].sort((x, y) => y.T.length - x.T.length)[0]; return b && b.T.length ? b.l : '—'; })())}</div>
+  const ys = aniosDisponibles().slice(0, 5).reverse();
+  const leidosYM = (y, i) => libros.filter(l => esLeido(l) && anioDe(l) === y && mesDe(l) === i).length;
+  const comp = `<h4 style="text-align:center;margin-bottom:8px;font-size:14px">📅 Comparativa de Libros Leídos por Mes</h4><div class="tabla-wrapper"><table class="tabla-comparativa-meses"><thead><tr><th>Mes</th>${ys.map(y => `<th>${y}</th>`).join('')}</tr></thead><tbody>
+    ${MESES.map((m, i) => `<tr><td style="font-weight:bold">${cap(m)}</td>${ys.map(y => `<td>${leidosYM(y, i)}</td>`).join('')}</tr>`).join('')}
+    <tr><td style="font-weight:bold">Total</td>${ys.map(y => `<td style="font-weight:bold">${libros.filter(l => esLeido(l) && anioDe(l) === y).length}</td>`).join('')}</tr></tbody></table></div>`;
+  $('contenido').innerHTML = `<div class="contenedor-registro-planner"><h2 style="text-align:center">📈 ESTADÍSTICAS Y GRÁFICAS (${a === 'todos' ? 'todos los años' : a})</h2>${selectorAnios(true)}
+    <div class="panel-destacados-grid">${card('Terminados / Próximos', `${T.length} / ${Pr.length}`)}${card('Mes más Lector', mesTop ? cap(mesTop[0]) : '---')}${card('Autora más Leída', autor ? `${esc(autor[0])} (${autor[1]} libros)` : '---')}${card('Libro más Largo', largo && pags(largo) ? `${esc(largo.titulo)} (${pags(largo)} págs)` : '---')}
+    ${card('Páginas leídas', T.reduce((s, l) => s + pags(l), 0))}${card('Rating promedio', cal.length ? (cal.reduce((s, l) => s + +l.rating, 0) / cal.length).toFixed(2) + ' ★' : '—')}${card('Días por libro', ds.length ? Math.round(ds.reduce((x, y) => x + y, 0) / ds.length) : '—')}${card('Mejor calificado', mejor ? esc(mejor.titulo) : '—')}</div>
     <div class="grafica-contenedor"><h4>🏷️ Top 5 de tropes (cada trope por separado)</h4><div class="selector-anio">${tb('mas', '🔝 Más leídos')}${tb('menos', '🔻 Menos leídos')}</div>
-    ${barras('', tr.slice(0, 5).map(o => ({ l: o.n, v: o.c, t: `${o.c}${o.r ? ` · ${(o.s / o.r).toFixed(1)}★` : ''}` })), 130).replace(/<h4><\/h4>/, '')}<p class="contador" style="text-align:center">${tr.length} tropes distintos en libros terminados</p></div>
+    ${barras('', tr.slice(0, 5).map(o => ({ l: o.n, v: o.c, t: `${o.c}${o.r ? ` · ${(o.s / o.r).toFixed(1)}★` : ''}` })), 130).replace('<h4></h4>', '')}<p class="contador" style="text-align:center">${tr.length} tropes distintos en libros terminados</p></div>
+    ${barras('📊 Distribución de Puntuaciones (Terminados)', [5, 4, 3, 2, 1].map(n => ({ l: n + ' ★', v: cal.filter(l => Math.floor(l.rating) === n).length })))}
+    ${barras(`🌍 Idioma — Terminados (${T.length})`, cuenta(T, l => l.idioma || 'Español').map(([k, v]) => ({ l: k, v })))}
+    ${barras(`🌍 Idioma — Próximos (${Pr.length})`, cuenta(Pr, l => l.idioma || 'Español').map(([k, v]) => ({ l: k, v })))}
     ${barras(a === 'todos' ? 'Libros por año' : 'Libros por mes', porPeriodo.map(p => ({ l: p.l, v: p.T.length })))}
     ${barras(a === 'todos' ? 'Páginas por año' : 'Páginas por mes', porPeriodo.map(p => ({ l: p.l, v: p.T.reduce((s, l) => s + pags(l), 0) })))}
-    ${barras('Calificaciones', [5, 4, 3, 2, 1].map(n => ({ l: '★'.repeat(n), v: cal.filter(l => Math.floor(l.rating) === n).length })))}
-    ${barras('Idiomas', cuenta(T, l => l.idioma || 'Español').map(([k, v]) => ({ l: k, v })))}${barras('Formatos', cuenta(T, l => l.formato).map(([k, v]) => ({ l: k, v })))}
-    ${barras('Autores más leídos', cuenta(T, l => l.autor).slice(0, 5).map(([k, v]) => ({ l: k, v })), 110)}${comp}</div>`;
+    ${barras('Formatos', cuenta(T, l => l.formato).map(([k, v]) => ({ l: k, v })))}${barras('Autores más leídos', cuenta(T, l => l.autor).slice(0, 5).map(([k, v]) => ({ l: k, v })), 110)}${comp}</div>`;
 }
 
 // ============ ADAPTACIONES (paginado) ============
 function mostrarAdaptaciones() {
   const p = paginar(adaptaciones, 'adaptaciones');
-  const fila = (t, v) => `<div class="adaptacion-info-fila">${t}: <span>${esc(v) || '---'}</span></div>`;
-  const html = p.items.map(ad => {
-    const l = libros.find(x => norm(x.titulo) === norm(ad.libro));
-    return `<div class="adaptacion-card-detalle"><div style="position:absolute;top:10px;right:10px"><button class="btn-tabla-accion" onclick="formAdaptacion(${ad.id})">✏️</button><button class="btn-tabla-accion" onclick="eliminarAdaptacion(${ad.id})">🗑️</button></div>
-      <div class="adaptacion-grid-comparativa">
-        <div class="adaptacion-columna-media"><div style="position:relative">${img(l && l.portada, ad.libro).replace('<img', '<img class="adaptacion-poster"')}</div><strong>📖 ${esc(ad.libro)}</strong><div class="adaptacion-info-detalles">${fila('Autor/a', l && l.autor)}<div class="adaptacion-info-fila">Mi rating: ${generarEstrellas(l && l.rating)}</div></div></div>
-        <div class="adaptacion-divisor-vertical"></div>
-        <div class="adaptacion-columna-media">${img(ad.poster, ad.titulo).replace('<img', '<img class="adaptacion-poster"')}<strong>🎬 ${esc(ad.titulo)}</strong><div class="adaptacion-info-detalles">${fila('Tipo', ad.tipo)}${fila('Estreno', ad.estreno)}${fila('Plataforma', ad.plataforma)}${fila('Estado', ad.estado)}<div class="adaptacion-info-fila">Mi rating: ${generarEstrellas(ad.rating)}</div></div></div></div>
-      ${ad.opinion ? `<p class="notas-texto" style="margin-top:15px;font-size:13px">${esc(ad.opinion)}</p>` : ''}</div>`;
-  }).join('');
-  $('contenido').innerHTML = `<div class="cabecera-vista"><h2>🎬 Adaptaciones</h2><button class="boton-volver btn-azul" style="margin:0" onclick="formAdaptacion()">+ Nueva adaptación</button></div>${html || '<p class="vacio">Aún no tienes adaptaciones registradas.</p>'}${p.html}`;
+  $('contenido').innerHTML = `<div class="autores-index-container"><div class="cabecera-vista"><h2 style="font-size:26px;margin:0">ADAPTACIONES</h2>
+    <div class="acciones"><button onclick="formAdaptacion()" class="boton-volver btn-azul" style="margin:0">+ Nueva</button>
+    <input type="file" id="csv-adapt" accept=".csv,.txt" hidden onchange="importarAdaptacionesCSV(event)"><button onclick="$('csv-adapt').click()" class="boton-volver btn-verde" style="margin:0">📂 CSV</button>
+    <button onclick="vaciarAdaptaciones()" class="boton-volver btn-rojo" style="margin:0">🗑️ Vaciar</button></div></div>
+    <div style="width:120px;height:2px;background:#4a77d4;margin:0 auto 20px auto"></div>
+    ${adaptaciones.length ? `<div class="autores-grid-3cols">${p.items.map(ad => `<button class="autor-btn-item" onclick="verDetalleAdaptacion(${ad.id})">${esc(ad.titulo)}</button>`).join('')}</div>${p.html}` : '<p class="vacio">Aún no tienes adaptaciones registradas.</p>'}</div>`;
+}
+function verDetalleAdaptacion(id) {
+  const idx = adaptaciones.findIndex(x => x.id === id); if (idx < 0) return; const ad = adaptaciones[idx];
+  const li = !+ad.ratingLibro, pi = !+ad.ratingPelicula, fila = (t, v) => `<div class="adaptacion-info-fila">${t}: <span>${esc(v) || '---'}</span></div>`;
+  const poster = u => img(u, ad.titulo).replace('<img', '<img class="adaptacion-poster"');
+  $('contenido').innerHTML = `<div><div class="cabecera-vista"><button onclick="mostrarAdaptaciones()" class="boton-volver" style="margin:0">← Volver</button>
+    <div><button onclick="formAdaptacion(${ad.id})" class="boton-volver" style="background:#fef08a">✏️ Editar</button> <button onclick="eliminarAdaptacion(${ad.id})" class="boton-volver btn-rojo">🗑️ Borrar</button></div></div>
+    <div class="adaptacion-card-detalle"><h2 style="text-align:center;margin-bottom:20px">${esc(ad.titulo)}</h2><div class="adaptacion-grid-comparativa">
+      <div class="adaptacion-columna-media"><div style="position:relative"><span class="badge-numero">${idx + 1}</span>${poster(ad.posterPelicula)}</div><div style="margin-top:6px">${generarEstrellasGrandes(pi ? 0 : ad.ratingPelicula, pi)}</div>
+        <div class="adaptacion-info-detalles">${fila('PELÍCULA / SERIE', ad.nombrePelicula || ad.titulo)}${fila('AÑO', ad.anioPelicula)}${fila('PLATAFORMA', ad.plataforma)}</div></div>
+      <div class="adaptacion-divisor-vertical"></div>
+      <div class="adaptacion-columna-media"><div style="position:relative"><span class="badge-numero">${numLibro(ad.nombreLibro || ad.titulo)}</span>${poster(ad.portadaLibro)}</div><div style="margin-top:6px">${generarEstrellasGrandes(li ? 0 : ad.ratingLibro, li)}</div>
+        <div class="adaptacion-info-detalles">${fila('LIBRO', ad.nombreLibro || ad.titulo)}${fila('AUTOR/A', ad.autor)}${fila('AÑO', ad.anioLibro)}</div></div>
+    </div></div></div>`;
 }
 function formAdaptacion(id) {
-  const a = adaptaciones.find(x => x.id === id) || {}; const inp = (t, n, v) => `<label>${t}</label><input id="a-${n}" value="${esc(v || '')}">`;
-  const sel = (t, n, ops, v) => `<label>${t}</label><select id="a-${n}">${ops.map(o => `<option ${o === v ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
-  $('contenido').innerHTML = `<button class="boton-volver" onclick="mostrarAdaptaciones()">← Volver</button><h2>${id ? '✏️ Editar' : '🎬 Nueva'} adaptación</h2><form id="form-ad" class="formulario-libro">
-    <label>Libro *</label><input id="a-libro" list="dl-l2" required value="${esc(a.libro || '')}"><datalist id="dl-l2">${libros.map(l => `<option value="${esc(l.titulo)}">`).join('')}</datalist>
-    ${inp('Título de la adaptación *', 'titulo', a.titulo)}${sel('Tipo', 'tipo', ['Película', 'Serie', 'Anime', 'Otro'], a.tipo)}${inp('Año de estreno', 'estreno', a.estreno)}${inp('Plataforma', 'plataforma', a.plataforma)}
-    ${sel('Estado', 'estado', ['Por ver', 'Viendo', 'Vista'], a.estado)}${sel('Rating (0-5)', 'rating', ['0', '1', '2', '3', '4', '5'], String(a.rating || 0))}${inp('Póster (URL)', 'poster', a.poster)}
-    <label>Opinión</label><textarea id="a-opinion" rows="4">${esc(a.opinion || '')}</textarea><button type="submit">Guardar</button></form>`;
-  $('form-ad').onsubmit = e => {
-    e.preventDefault(); const g = n => $('a-' + n).value.trim();
-    const d = { libro: g('libro'), titulo: g('titulo'), tipo: g('tipo'), estreno: g('estreno'), plataforma: g('plataforma'), estado: g('estado'), rating: Number(g('rating')), poster: g('poster'), opinion: g('opinion') };
-    if (id) Object.assign(a, d); else adaptaciones.push({ id: nuevoId(), ...d }); guardarEnLocalStorage(); mostrarAdaptaciones();
+  const ad = adaptaciones.find(x => x.id === id), a = ad || {};
+  const f = (t, n, v, tp = 'text', ex = '') => `<label>${t}</label><input type="${tp}" id="ad-${n}" value="${esc(v ?? '')}" ${ex}>`;
+  $('contenido').innerHTML = `<button onclick="${ad ? `verDetalleAdaptacion(${id})` : 'mostrarAdaptaciones()'}" class="boton-volver">← ${ad ? 'Cancelar' : 'Volver'}</button><h2>${ad ? '✏️ Editar' : '🎬 Nueva'} Adaptación</h2>
+    <form id="form-adapt" class="formulario-libro">${f('Título de la Obra General', 'titulo', a.titulo, 'text', 'required')}
+    <label>--- DATOS DE LA PELÍCULA / SERIE ---</label>${f('Nombre de la Película / Serie', 'nombp', a.nombrePelicula)}${f('Año Película', 'anip', a.anioPelicula, 'number')}${f('Plataforma', 'plat', a.plataforma)}
+    ${f('Puntuación Película (0 si no se vio)', 'ratp', a.ratingPelicula || 0, 'number', 'min="0" max="5"')}${f('Póster Película (URL o ruta)', 'postp', a.posterPelicula)}
+    <label style="margin-top:10px">--- DATOS DEL LIBRO ---</label><label>Nombre del Libro (vincula con tu librería)</label><input id="ad-nombl" list="dl-l2" value="${esc(a.nombreLibro || '')}"><datalist id="dl-l2">${libros.map(l => `<option value="${esc(l.titulo)}">`).join('')}</datalist>
+    ${f('Autor/a', 'autor', a.autor)}${f('Año Libro', 'anil', a.anioLibro, 'number')}${f('Puntuación Libro (0 si no se leyó)', 'ratl', a.ratingLibro || 0, 'number', 'min="0" max="5"')}${f('Portada Libro (URL o ruta)', 'portl', a.portadaLibro)}
+    <button type="submit" style="margin-top:15px">Guardar</button></form>`;
+  $('form-adapt').onsubmit = e => {
+    e.preventDefault(); const g = n => $('ad-' + n).value.trim();
+    const d = { titulo: g('titulo'), nombrePelicula: g('nombp'), anioPelicula: Number(g('anip')) || '', plataforma: g('plat'), ratingPelicula: Number(g('ratp')) || 0, posterPelicula: g('postp'),
+      nombreLibro: g('nombl'), autor: g('autor'), anioLibro: Number(g('anil')) || '', ratingLibro: Number(g('ratl')) || 0, portadaLibro: g('portl') };
+    if (ad) Object.assign(ad, d); else adaptaciones.push({ id: nuevoId(), ...d });
+    guardarEnLocalStorage(); ad ? verDetalleAdaptacion(id) : mostrarAdaptaciones();
   };
 }
-function eliminarAdaptacion(id) { if (confirm('¿Borrar esta adaptación?')) { adaptaciones = adaptaciones.filter(x => x.id !== id); guardarEnLocalStorage(); mostrarAdaptaciones(); } }
+function eliminarAdaptacion(id) { if (confirm('¿Estás segura de eliminar esta adaptación?')) { adaptaciones = adaptaciones.filter(x => x.id !== id); guardarEnLocalStorage(); mostrarAdaptaciones(); } }
+function vaciarAdaptaciones() { if (confirm('⚠️ ¿Borrar TODAS las adaptaciones?')) { adaptaciones = []; guardarEnLocalStorage(); mostrarAdaptaciones(); } }
+function importarAdaptacionesCSV(ev) {
+  const f = ev.target.files[0]; if (!f) return; const r = new FileReader();
+  r.onload = e => {
+    let n = 0; // columnas: titulo,nombrePelicula,anioPelicula,plataforma,ratingPelicula,posterPelicula,autor,anioLibro,ratingLibro,portadaLibro
+    parseCSV(e.target.result).slice(1).forEach(c => {
+      if (c.length < 2) return;
+      adaptaciones.push({ id: nuevoId(), titulo: c[0] || 'Obra', nombrePelicula: c[1] || '', anioPelicula: Number(c[2]) || '', plataforma: c[3] || '', ratingPelicula: Number(c[4]) || 0, posterPelicula: c[5] || '', autor: c[6] || '', anioLibro: Number(c[7]) || '', ratingLibro: Number(c[8]) || 0, portadaLibro: c[9] || '' }); n++;
+    });
+    guardarEnLocalStorage(); alert(`¡Se importaron ${n} adaptaciones!`); mostrarAdaptaciones();
+  };
+  r.readAsText(f, 'UTF-8'); ev.target.value = '';
+}
+function vaciarTodosLosDatos() {
+  if (confirm('⚠️ ¿Borrar TODOS los libros y datos registrados? Esta acción no se puede deshacer.')) { localStorage.clear(); location.reload(); }
+}
 
 // ============ INICIO ============
-mostrarPagina('inicio');
+// Migra tus favoritos antiguos (esFavoritoMes) al nuevo sistema de favoritos manuales
+(function migrarFavoritos() {
+  let cambio = false;
+  libros.forEach(l => {
+    if (l.esFavoritoMes !== true) return;
+    const m = mesDe(l);
+    if (m >= 0) { const k = `${anioDe(l)}-${m}`, a = favManual[k] = favManual[k] || [null, null], i = a[0] ? (a[1] ? -1 : 1) : 0; if (i >= 0 && !a.includes(l.id)) a[i] = l.id; }
+    l.esFavoritoMes = false; cambio = true;
+  });
+  if (cambio) guardarEnLocalStorage();
+})();
+window.onload = () => { mostrarPagina('inicio'); };
